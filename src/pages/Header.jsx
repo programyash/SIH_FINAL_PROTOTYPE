@@ -1,41 +1,48 @@
-import React, { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../scss/Header.scss";
 import gbl from "../data/gyaansetu black clear logo.jpg";
 import gblue from "../data/gyaansetu blue clear logo.jpg";
-
 import { GoArrowUpRight } from "react-icons/go";
+
+// Profile Icon Component
+const ProfileIcon = ({ onClick }) => (
+  <img
+    src="https://i.pravatar.cc/40?u=a042581f4e29026704d"
+    alt="Profile"
+    onClick={onClick}
+    style={{
+      width: "40px",
+      height: "40px",
+      borderRadius: "50%",
+      cursor: "pointer",
+      border: "2px solid white",
+    }}
+  />
+);
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(
+    () => localStorage.getItem("loggedIn") === "true"
+  ); // persist login state
+  const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-  // const signup = document.querySelector(".sign");
-  // const header = document.querySelector(".header");
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  // if (signup && header) {
-  //   const handleClick = () => {
-  //     header.style.display = "none";
-  //   };
+  // If user visits profile page, mark as loggedIn
+  useEffect(() => {
+    if (location.pathname === "/profile") {
+      setLoggedIn(true);
+      localStorage.setItem("loggedIn", "true"); // save to localStorage
+    }
+  }, [location.pathname]);
 
-  //   signup.addEventListener("click", handleClick);
-
-  //   return () => {
-  //     signup.removeEventListener("click", handleClick);
-  //   };
-  // }
-
-  const handleScroll = () => setScrolled(window.scrollY > 50);
-  window.addEventListener("scroll", handleScroll);
-
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-  };
-}, []);
-
-
-  
   return (
     <header className={`header ${scrolled ? "scrolled" : ""}`}>
       {/* Logo */}
@@ -56,11 +63,16 @@ const Header = () => {
       {/* Buttons */}
       <div className="header-buttons">
         <button className="start" onClick={() => navigate("/solve")}>
-          Start Solving <GoArrowUpRight className="upright"/>
+          Start Solving <GoArrowUpRight className="upright" />
         </button>
-        <button className="sign" onClick={() => navigate("/signup")}>
-          Sign Up
-        </button>
+
+        {loggedIn ? (
+          <ProfileIcon onClick={() => navigate("/profile")} />
+        ) : (
+          <button className="sign" onClick={() => navigate("/signup")}>
+            Sign Up
+          </button>
+        )}
       </div>
     </header>
   );

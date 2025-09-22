@@ -1,14 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./pages/Header";
-import './scss/Header.scss';
+import "./scss/Header.scss";
 import Home from "./pages/Home";
 import Lecture from "./pages/Lecture";
 import Compiler from "./pages/Compiler";
 import Solve from "./pages/Solve";
 import About from "./pages/About";
 import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Profile"; // import your Profile page
 
 function App() {
   return (
@@ -28,4 +28,3 @@ function App() {
 }
 
 export default App;
-
