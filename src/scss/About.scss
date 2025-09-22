@@ -1,0 +1,269 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+
+/* --- CSS Variables for Easy Theming --- */
+:root {
+  --primary-color: #3b82f6;
+  --primary-dark: #1e40af;
+  --dark-bg: #0f172a;
+  --light-text: #e5e7eb;
+  --white-bg: #ffffff;
+  --gray-bg: #f3f4f6;
+  --dark-text: #111827;
+  --section-padding: 80px 0;
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Global Styles & Reset --- */
+* {
+  letter-spacing: 0.03cm;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--dark-bg);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section-title {
+  margin-top: 30px;
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--light-text);
+  text-align: center;
+  animation: fadeIn 1s ease-out;
+
+  .leftarrow{
+    color: #3b82f6;
+  }
+
+  .rightarrow{
+    color: #3b82f6;
+  }
+}
+
+.himini{
+    position: relative;
+    top: 7px;
+    color: #3b82f6;
+}
+/* --- About Page Wrapper --- */
+.about-page {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Hero Section --- */
+.about-hero {
+  position: relative;
+  background-image: url("../data/robohand.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Parallax effect */
+  height: 95vh; /* Adjusted height */
+  color: var(--white-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 1),
+    rgba(15, 23, 42, 0.6)
+  );
+}
+
+.about-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  padding: 0 20px;
+
+  h1 {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.2;
+    animation: fadeInDown 1s ease-out;
+
+    span {
+      color: var(--primary-color);
+    }
+  }
+
+  p {
+    margin-top: 25px;
+    letter-spacing: 0.05cm;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--light-text);
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeInUp 1.2s ease-out;
+  }
+}
+
+/* --- Features Section (Flip Cards) --- */
+.features-section {
+  padding: var(--section-padding);
+  background-color: var(--dark-bg);
+}
+
+.features-grid {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  justify-content: start;
+}
+
+.feature-card {
+  height: 320px;
+  perspective: 1500px;
+  cursor: pointer;
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s;
+    transform-style: preserve-3d;
+  }
+
+  &:hover .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  &:hover {
+    transform: scale(1.03);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .card-front,
+  .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+  }
+
+  .card-front {
+    background: #1e293b;
+    border: 1px solid #334155;
+    
+    .icon {
+        padding: 10px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+      font-size: 70px;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--light-text);
+    }
+  }
+
+  .card-back {
+    background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+    color: var(--white-bg);
+    transform: rotateY(180deg);
+    
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+  }
+}
+
+/* --- Mission Section --- */
+.mission-section {
+    background-color: #1e293b;
+    padding: var(--section-padding);
+    text-align: center;
+
+    .mission-text {
+        max-width: 800px;
+        margin: 50px auto;
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--light-text);
+    }
+}
+
+/* --- Animations --- */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+  .about-content h1 {
+    font-size: 48px;
+  }
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 32px;
+  }
+  .about-hero {
+    height: 80vh;
+  }
+  .about-content h1 {
+    font-size: 40px;
+  }
+  .about-content p, .mission-section .mission-text {
+    font-size: 16px;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}

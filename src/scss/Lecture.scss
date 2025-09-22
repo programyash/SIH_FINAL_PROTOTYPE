@@ -1,0 +1,933 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+// --- ✨ NEW: Design System Variables ---
+:root {
+  --font-primary: "Inter", sans-serif;
+  --bg-dark: #0f172a;
+  --bg-medium: #1e293b;
+  --bg-light: #334155;
+  --primary-blue: #3b82f6;
+  --primary-blue-dark: #2563eb;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-yellow: #f59e0b;
+  --border-color: #475569;
+  --shadow-color: rgba(0, 0, 0, 0.25);
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition-fast: all 0.2s ease-in-out;
+}
+
+// --- ✨ NEW: Custom Scrollbar ---
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-medium);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-light);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--border-color);
+  }
+}
+
+// --- Base Styles ---
+.lecture-page {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-dark);
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+}
+
+// --- ✨ NEW: Overlay Effect ---
+.lecture-page.overlay-active>main,
+.lecture-page.overlay-active>.doubt-lecture,
+.lecture-page.overlay-active>.doubts-list {
+  filter: blur(4px) brightness(0.7);
+  transform: scale(0.99);
+  transition: var(--transition-fast);
+  pointer-events: none;
+}
+
+.lecture-content {
+  
+  flex: 1;
+  transition: var(--transition-fast);
+
+  .course-title-header {
+    text-align: center;
+    margin: 20px 0;
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// --- ✨ IMPROVED: Search Section ---
+.search-lecture {
+  margin-top: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  .input-with-icon {
+    margin-top: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 500px;
+
+    svg {
+      position: absolute;
+      left: 15px;
+      color: var(--text-secondary);
+    }
+
+    input {
+      // position: relative;
+      // bottom: 95px;
+      width: 100%;
+      padding: 14px 14px 14px 45px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border-color);
+      font-size: 16px;
+      background: var(--bg-medium);
+      color: var(--text-primary);
+      transition: var(--transition-fast);
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+
+  button {
+    background: var(--primary-blue-dark);
+    color: #fff;
+    border: none;
+    height: 60px;
+    border-radius: var(--radius-md);
+    padding: 12px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: var(--primary-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// --- Main Lecture Area ---
+.lecture-area {
+  margin-top: 0;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  .live-lecture {
+    margin-top: 0;
+    flex: 1;
+    min-height: 500px;
+    background: var(--bg-medium);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 22px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+      color: var(--text-secondary);
+
+      h2 {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .lecture-details h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+  }
+}
+
+// --- Lecture Controls ---
+.lecture-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    background: var(--bg-light);
+    color: var(--text-primary);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+
+    &.quiz-btn:hover:not(:disabled) {
+      background: var(--accent-green);
+    }
+
+    &.next-btn:hover:not(:disabled),
+    &.prev-btn:hover:not(:disabled) {
+      background: var(--primary-blue);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// --- ✨ IMPROVED: Syllabus Sidebar ---
+.syllabus-sidebar {
+  flex: 0 0 380px;
+  background: var(--bg-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 22px var(--shadow-color);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+
+  .syllabus-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    padding: 20px;
+    color: white;
+    text-align: center;
+  }
+
+  .syllabus-content {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+
+    ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .syllabus-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: var(--radius-md);
+      transition: var(--transition-fast);
+      border: 1px solid transparent;
+
+      &.clickable {
+        cursor: pointer;
+
+        &:hover {
+          background: var(--bg-light);
+          transform: translateX(4px);
+        }
+      }
+
+      &.active {
+        background: var(--primary-blue);
+        color: white;
+
+        .lesson-number {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .lesson-title {
+          color: white;
+        }
+
+        .lesson-summary {
+          color: rgba(255, 255, 255, 0.85);
+        }
+      }
+
+      .lesson-number {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        background: var(--bg-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: var(--transition-fast);
+      }
+
+      .lesson-title {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .lesson-summary {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .click-indicator {
+        margin-left: auto;
+        align-self: center;
+        opacity: 0;
+        transition: var(--transition-fast);
+        color: var(--primary-blue);
+      }
+
+      &.clickable:hover .click-indicator {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// --- ✨ IMPROVED: Doubt Section ---
+.doubt-lecture {
+  border-radius: 15px;
+  margin: auto;
+  width: 90%;
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  padding: 20px 4%;
+  background: var(--bg-medium);
+  border-top: 1px solid var(--border-color);
+
+  input {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-color);
+    font-size: 16px;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    transition: var(--transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+  }
+
+  button {
+    background: green;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 22px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+
+    &:hover {
+      background: green;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px green;
+    }
+  }
+}
+
+.doubts-list {
+  padding: 20px 4%;
+  animation: fadeIn 0.5s ease;
+
+  h4 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 1.25rem;
+  }
+
+  .doubt-answers {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .doubt-entry {
+    animation: slideInUp 0.5s ease;
+  }
+
+  .doubt-question,
+  .doubt-answer {
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    max-width: 90%;
+  }
+
+  .doubt-question {
+    background: var(--bg-light);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+
+    .question-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .question-time {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+  }
+
+  .doubt-answer {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+
+    .answer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// --- History Sidebar ---
+.history-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100%;
+  background: var(--bg-medium);
+  border-left: 1px solid var(--border-color);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px var(--shadow-color);
+  animation: slideInRight 0.3s ease;
+
+  /* ... existing history styles ... */
+  .history-item {
+    cursor: pointer;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    transition: var(--transition-fast);
+
+    &:hover {
+      background: var(--bg-light);
+    }
+  }
+}
+
+// --- ✨ NEW: Floating Action Buttons ---
+.floating-action-buttons {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+
+  .fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    cursor: pointer;
+    transition: var(--transition-fast);
+
+    &:hover {
+      transform: scale(1.1) rotate(10deg);
+      background: var(--primary-blue-dark);
+    }
+  }
+}
+
+// --- ✨ NEW: Toast Notifications ---
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transform: translate(-50%, -20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 15px var(--shadow-color);
+
+  &.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  &.info {
+    background: var(--primary-blue);
+  }
+
+  &.success {
+    background: var(--accent-green);
+  }
+
+  &.warning {
+    background: var(--accent-yellow);
+  }
+
+  &.error {
+    background: var(--accent-red);
+  }
+}
+
+// --- Animations ---
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+// --- Utility Classes for Loading ---
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  &.small {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.tiny {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+// --- ✨ NEW: Design System Variables ---
+:root {
+  --font-primary: "Inter", sans-serif;
+  --bg-dark: #0f172a;
+  --bg-medium: #1e293b;
+  --bg-light: #334155;
+  --primary-blue: #3b82f6;
+  --primary-blue-dark: #2563eb;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-yellow: #f59e0b;
+  --border-color: #475569;
+  --shadow-color: rgba(0, 0, 0, 0.25);
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition-fast: all 0.2s ease-in-out;
+}
+
+// --- ✨ NEW: Custom Scrollbar ---
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-medium);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-light);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--border-color);
+  }
+}
+
+// --- Base Styles ---
+.lecture-page {
+  margin-top: 50px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-dark);
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+// --- ✨ NEW: Overlay Effect ---
+.lecture-page.overlay-active>main,
+.lecture-page.overlay-active>.doubt-lecture,
+.lecture-page.overlay-active>.doubts-list {
+  filter: blur(4px) brightness(0.7);
+  transform: scale(0.99);
+  transition: var(--transition-fast);
+  pointer-events: none;
+}
+
+.lecture-content {
+  padding: 80px 4% 40px;
+  flex: 1;
+  transition: var(--transition-fast);
+
+  .course-title-header {
+    text-align: center;
+    margin: 20px 0;
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// --- ✨ IMPROVED: Search Section ---
+.search-lecture {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 500px;
+
+    svg {
+      position: absolute;
+      left: 15px;
+      color: var(--text-secondary);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 14px 14px 45px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border-color);
+      font-size: 16px;
+      background: var(--bg-medium);
+      color: var(--text-primary);
+      transition: var(--transition-fast);
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+
+  button {
+    background: var(--primary-blue-dark);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 22px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: var(--primary-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// --- Main Lecture Area ---
+.lecture-area {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  .live-lecture {
+    flex: 1;
+    min-height: 500px;
+    background: var(--bg-medium);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 22px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+      color: var(--text-secondary);
+
+      h2 {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .lecture-details h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+  }
+    
+  // --- ✨ NEW: Avatar Styles ---
+  .avatar-container {
+      flex: 0 0 180px; // Fixed width for the avatar column
+      display: flex;
+      justify-content: center;
+      padding-top: 30px; // Align it nicely with the content
+
+      .avatar-image {
+          width: 100%;
+          height: auto;
+      }
+  }
+}
+
+// --- Lecture Controls ---
+.lecture-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    background: var(--bg-light);
+    color: var(--text-primary);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+
+    &.quiz-btn:hover:not(:disabled) {
+      background: var(--accent-green);
+    }
+
+    &.next-btn:hover:not(:disabled),
+    &.prev-btn:hover:not(:disabled) {
+      background: var(--primary-blue);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// --- ✨ IMPROVED: Syllabus Sidebar ---
+.syllabus-sidebar {
+  flex: 0 0 380px;
+  background: var(--bg-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 22px var(--shadow-color);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+
+  .syllabus-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    padding: 20px;
+    color: white;
+    text-align: center;
+  }
+
+  .syllabus-content {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+
+    ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .syllabus-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: var(--radius-md);
+      transition: var(--transition-fast);
+      border: 1px solid transparent;
+
+      &.clickable {
+        cursor: pointer;
+
+        &:hover {
+          background: var(--bg-light);
+          transform: translateX(4px);
+        }
+      }
+
+      &.active {
+        background: var(--primary-blue);
+        color: white;
+
+        .lesson-number {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .lesson-title {
+          color: white;
+        }
+
+        .lesson-summary {
+          color: rgba(255, 255, 255, 0.85);
+        }
+      }
+
+      .lesson-number {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        background: var(--bg-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: var(--transition-fast);
+      }
+    }
+  }
+}
+

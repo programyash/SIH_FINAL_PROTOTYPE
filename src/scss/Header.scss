@@ -1,0 +1,174 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.header {
+    height: 100px;
+    font-family: "Inter", sans-serif;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    background-color: black;
+    transition: background 0.35s ease, box-shadow 0.35s ease;
+
+    .logo img {
+        cursor: pointer;
+        height: 60px;
+        width: 70px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    nav {
+        display: flex;
+        gap: 28px;
+
+        a {
+            position: relative;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 17px;
+            text-decoration: none;
+            padding-bottom: 4px;
+            transition: color 0.3s ease;
+
+            /* underline effect */
+            &::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                height: 2px;
+                width: 0;
+                background-color: #fff;
+                transition: width 0.3s ease;
+            }
+
+            &:hover {
+                color: #f1f5f9;
+
+                &::after {
+                    width: 100%;
+                }
+            }
+
+            &.active {
+                color: #f1f5f9;
+
+                &::after {
+                    width: 100%; // keeps underline active
+                }
+            }
+        }
+    }
+
+    .header-buttons {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    &.scrolled {
+        background: rgba(15, 23, 42, 0.85); // dark navy translucent
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+}
+
+/* 🚀 Start Solving Button */
+.start {
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    position: relative;
+    background-clip: padding-box;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 10px;
+        padding: 2px;
+        background: #3b82f6;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+    &:hover {
+        background-color: black;
+        color: #3b82f6;
+        transform: translateY(-2px);
+    }
+    .upright{
+        position: relative;
+        top: 3px;
+    }
+}
+
+/* 🚀 Sign Up Button */
+.sign {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #3b82f6;
+    color: #fff;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: black;
+        color: #3b82f6;
+        transform: translateY(-2px) scale(1.05);
+    }
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+    .header {
+        padding: 12px 6%;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+
+        nav {
+            gap: 16px;
+
+            a {
+                font-size: 15px;
+            }
+        }
+
+        .logo {
+            font-size: 22px;
+        }
+
+        .header-buttons {
+            gap: 10px;
+        }
+
+        .start,
+        .sign {
+            font-size: 13px;
+            padding: 8px 14px;
+        }
+    }
+}
