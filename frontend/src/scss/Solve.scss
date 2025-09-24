@@ -205,7 +205,229 @@ body {
     flex-grow: 1;
 }
 
-// --- 6. Responsive Design ---
+// --- 6. Question Cards & Topic Input Styling ---
+.topic-input-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--c-border-asteroid);
+    
+    h2 {
+        margin: 0 0 1rem 0;
+        color: var(--c-text-star-bright);
+        font-size: 1.2rem;
+    }
+}
+
+.topic-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.topic-input {
+    flex: 1;
+    background-color: var(--c-bg-deep-space);
+    border: 1px solid var(--c-border-asteroid);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    color: var(--c-text-star-bright);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--c-accent-starship);
+        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
+    }
+
+    &::placeholder {
+        color: var(--c-text-star-dim);
+    }
+}
+
+.generate-button {
+    background-color: var(--c-accent-starship);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: #4a9eff;
+    }
+}
+
+.questions-list {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.questions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.question-card {
+    background-color: var(--c-bg-deep-space);
+    border: 1px solid var(--c-border-asteroid);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--c-accent-starship);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.1);
+    }
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    gap: 0.75rem;
+
+    h3 {
+        margin: 0;
+        color: var(--c-text-star-bright);
+        font-size: 1.1rem;
+        line-height: 1.3;
+    }
+}
+
+.difficulty-tag {
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.question-description {
+    color: var(--c-text-star-dim);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.question-example {
+    margin-bottom: 1rem;
+
+    strong {
+        color: var(--c-text-star-bright);
+        font-size: 0.85rem;
+    }
+
+    pre {
+        background-color: var(--c-panel-nebula);
+        padding: 0.75rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--c-text-star-bright);
+        overflow-x: auto;
+    }
+}
+
+.solution-button {
+    background-color: var(--c-accent-wormhole);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+
+    &:hover {
+        background-color: #d65db8;
+        transform: translateY(-1px);
+    }
+}
+
+.question-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.start-solving-button {
+    background-color: var(--c-action-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+
+    &:hover {
+        background-color: var(--c-action-primary-hover);
+        transform: translateY(-1px);
+    }
+}
+
+.solution-content {
+    margin-bottom: 1.5rem;
+
+    p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+}
+
+.solution-code {
+    h4 {
+        color: var(--c-text-star-bright);
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    pre {
+        background-color: var(--c-bg-deep-space);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        overflow-x: auto;
+    }
+}
+
+.back-to-question-button {
+    background-color: var(--c-border-asteroid);
+    color: var(--c-text-star-bright);
+    border: 1px solid var(--c-border-asteroid);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: var(--c-accent-starship);
+        border-color: var(--c-accent-starship);
+        color: white;
+    }
+}
+
+// --- 7. Responsive Design ---
 @media (max-width: 1024px) {
     body {
         padding: 1rem;
@@ -214,5 +436,18 @@ body {
     .solve-page-container {
         grid-template-columns: 1fr;
         height: auto;
+    }
+
+    .questions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topic-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .generate-button {
+        width: 100%;
     }
 }

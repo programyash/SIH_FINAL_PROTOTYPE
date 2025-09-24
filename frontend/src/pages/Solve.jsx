@@ -9,18 +9,109 @@ const languages = [
   { value: "java", label: "Java", icon: "☕" },
 ];
 
-// A simple placeholder for the problem description.
-const ProblemContent = () => (
-  <div className="content-area">
-    <h3>1. Two Sum</h3>
-    <p>Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.</p>
-    <p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p>
-    <pre>
-      <strong>Input:</strong> nums = [2,7,11,15], target = 9<br />
-      <strong>Output:</strong> [0,1]
-    </pre>
+// Sample questions data structure
+const sampleQuestions = [
+  {
+    id: 1,
+    title: "Two Sum",
+    difficulty: "easy",
+    description: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+    example: "Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]",
+    solution: "Use a hash map to store numbers and their indices. For each number, check if target - number exists in the map."
+  },
+  {
+    id: 2,
+    title: "Add Two Numbers",
+    difficulty: "medium",
+    description: "You are given two non-empty linked lists representing two non-negative integers. Add the two numbers and return the sum as a linked list.",
+    example: "Input: l1 = [2,4,3], l2 = [5,6,4]\nOutput: [7,0,8]",
+    solution: "Traverse both lists simultaneously, add corresponding digits, and handle carry."
+  },
+  {
+    id: 3,
+    title: "Longest Substring Without Repeating Characters",
+    difficulty: "medium",
+    description: "Given a string s, find the length of the longest substring without repeating characters.",
+    example: "Input: s = 'abcabcbb'\nOutput: 3",
+    solution: "Use sliding window technique with a set to track characters in current window."
+  },
+  {
+    id: 4,
+    title: "Median of Two Sorted Arrays",
+    difficulty: "hard",
+    description: "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.",
+    example: "Input: nums1 = [1,3], nums2 = [2]\nOutput: 2.00000",
+    solution: "Use binary search to partition both arrays such that left partition has equal or one more element than right partition."
+  }
+];
+
+// Question Card Component
+const QuestionCard = ({ question, onViewSolution }) => {
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'easy': return '#22c55e';
+      case 'medium': return '#f59e0b';
+      case 'hard': return '#ef4444';
+      default: return '#6b7280';
+    }
+  };
+
+  return (
+    <div className="question-card">
+      <div className="question-header">
+        <h3>{question.title}</h3>
+        <span 
+          className="difficulty-tag"
+          style={{ backgroundColor: getDifficultyColor(question.difficulty) }}
+        >
+          {question.difficulty.toUpperCase()}
+        </span>
+      </div>
+      <p className="question-description">{question.description}</p>
+      <div className="question-example">
+        <strong>Example:</strong>
+        <pre>{question.example}</pre>
+      </div>
+      <button 
+        className="solution-button"
+        onClick={() => onViewSolution(question)}
+      >
+        View Solution
+      </button>
+    </div>
+  );
+};
+
+// Topic Input Component
+const TopicInput = ({ onGenerateQuestions }) => {
+  const [topic, setTopic] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (topic.trim()) {
+      onGenerateQuestions(topic.trim());
+      setTopic('');
+    }
+  };
+
+  return (
+    <div className="topic-input-section">
+      <h2>Generate Questions by Topic</h2>
+      <form onSubmit={handleSubmit} className="topic-form">
+        <input
+          type="text"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="Enter a topic (e.g., Arrays, Linked Lists, Dynamic Programming)"
+          className="topic-input"
+        />
+        <button type="submit" className="generate-button">
+          Generate Questions
+        </button>
+      </form>
   </div>
 );
+};
 
 
 // --- Main Component ---
@@ -29,37 +120,150 @@ const Solve = () => {
   // State for the selected language
   const [language, setLanguage] = useState("javascript");
   // State to track the active tab on the left panel
-  const [activeLeftTab, setActiveLeftTab] = useState("question");
+  const [activeLeftTab, setActiveLeftTab] = useState("questions");
+  // State for generated questions
+  const [generatedQuestions, setGeneratedQuestions] = useState([]);
+  // State for selected question
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  // State for showing solution
+  const [showSolution, setShowSolution] = useState(false);
+
+  // Function to generate questions based on topic
+  const generateQuestions = (topic) => {
+    // Filter sample questions based on topic (in a real app, this would be an API call)
+    const filteredQuestions = sampleQuestions.filter(q => 
+      q.title.toLowerCase().includes(topic.toLowerCase()) ||
+      q.description.toLowerCase().includes(topic.toLowerCase())
+    );
+    
+    // If no specific matches, return all questions for demonstration
+    const questionsToShow = filteredQuestions.length > 0 ? filteredQuestions : sampleQuestions;
+    setGeneratedQuestions(questionsToShow);
+    setActiveLeftTab('questions');
+  };
+
+  // Function to handle viewing solution
+  const handleViewSolution = (question) => {
+    setSelectedQuestion(question);
+    setShowSolution(true);
+    setActiveLeftTab('solution');
+  };
+
+  // Function to start solving a question
+  const startSolving = (question) => {
+    setSelectedQuestion(question);
+    setShowSolution(false);
+    setActiveLeftTab('question');
+  };
+
+  // Render questions list
+  const QuestionsList = () => (
+    <div className="questions-list">
+      <TopicInput onGenerateQuestions={generateQuestions} />
+      {generatedQuestions.length > 0 && (
+        <div className="questions-grid">
+          {generatedQuestions.map(question => (
+            <QuestionCard 
+              key={question.id} 
+              question={question} 
+              onViewSolution={handleViewSolution}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Render selected question
+  const SelectedQuestion = () => (
+    <div className="content-area">
+      {selectedQuestion && (
+        <>
+          <h3>{selectedQuestion.title}</h3>
+          <p>{selectedQuestion.description}</p>
+          <div className="question-example">
+            <strong>Example:</strong>
+            <pre>{selectedQuestion.example}</pre>
+          </div>
+          <div className="question-actions">
+            <button 
+              className="solution-button"
+              onClick={() => handleViewSolution(selectedQuestion)}
+            >
+              View Solution
+            </button>
+            <button 
+              className="start-solving-button"
+              onClick={() => startSolving(selectedQuestion)}
+            >
+              Start Solving
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // Render solution
+  const SolutionView = () => (
+    <div className="content-area">
+      {selectedQuestion && (
+        <>
+          <h3>Solution for {selectedQuestion.title}</h3>
+          <div className="solution-content">
+            <p><strong>Approach:</strong> {selectedQuestion.solution}</p>
+            <div className="solution-code">
+              <h4>Code Implementation:</h4>
+              <pre>{`// ${selectedQuestion.title} Solution
+// Time Complexity: O(n)
+// Space Complexity: O(n)
+
+function solution() {
+    // Implementation would go here
+    // This is a placeholder for the actual solution
+}`}</pre>
+            </div>
+          </div>
+          <button 
+            className="back-to-question-button"
+            onClick={() => setActiveLeftTab('question')}
+          >
+            Back to Question
+          </button>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <>
       <div className="solve-page-container">
-        {/* Left Panel: For Problem Description, Approach, etc. */}
+        {/* Left Panel: For Questions, Problem Description, Solution */}
         <div className="problem-pane">
           <div className="panel-header">
+            <button
+              className={`tab-button ${activeLeftTab === 'questions' ? 'active' : ''}`}
+              onClick={() => setActiveLeftTab('questions')}
+            >
+              Questions
+            </button>
             <button
               className={`tab-button ${activeLeftTab === 'question' ? 'active' : ''}`}
               onClick={() => setActiveLeftTab('question')}
             >
-              Question
+              Problem
             </button>
             <button
-              className={`tab-button ${activeLeftTab === 'approach' ? 'active' : ''}`}
-              onClick={() => setActiveLeftTab('approach')}
+              className={`tab-button ${activeLeftTab === 'solution' ? 'active' : ''}`}
+              onClick={() => setActiveLeftTab('solution')}
             >
-              Approach
-            </button>
-            <button
-              className={`tab-button ${activeLeftTab === 'similar' ? 'active' : ''}`}
-              onClick={() => setActiveLeftTab('similar')}
-            >
-              Similar Questions
+              Solution
             </button>
           </div>
           {/* Conditionally render content based on the active tab */}
-          {activeLeftTab === 'question' && <ProblemContent />}
-          {activeLeftTab === 'approach' && <div className="content-area placeholder">Approach details would be shown here.</div>}
-          {activeLeftTab === 'similar' && <div className="content-area placeholder">A list of similar questions would appear here.</div>}
+          {activeLeftTab === 'questions' && <QuestionsList />}
+          {activeLeftTab === 'question' && <SelectedQuestion />}
+          {activeLeftTab === 'solution' && <SolutionView />}
         </div>
 
         {/* Right Panel: For Compiler and Results */}
