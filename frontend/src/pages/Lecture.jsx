@@ -548,10 +548,10 @@ const Lecture = () => {
             )}
 
             <div className="floating-action-buttons">
-                <button className="fab" onClick={() => setShowProgressDashboard(!showProgressDashboard)} title={showProgressDashboard ? "Close Progress" : "Open Progress Dashboard"}>
+                <button className="fab" onClick={() => setShowProgressDashboard(prev => !prev)} title={showProgressDashboard ? "Close Progress" : "Open Progress Dashboard"}>
                     {showProgressDashboard ? "✕" : "📊"}
                 </button>
-                <button className="fab" onClick={() => setShowHistory(!showHistory)} title={showHistory ? "Close History" : "Open Learning History"}>
+                <button className="fab" onClick={() => setShowHistory(prev => !prev)} title={showHistory ? "Close History" : "Open Learning History"}>
                     {showHistory ? "✕" : "📚"}
                 </button>
             </div>
