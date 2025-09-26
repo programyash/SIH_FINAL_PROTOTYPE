@@ -522,7 +522,10 @@ const Lecture = () => {
                         <h3>📚 Learning History</h3>
                         <div className="history-controls">
                             <button className="clear-history-btn" onClick={clearHistory} title="Clear all history">🗑️</button>
-                            <button className="close-history-btn" onClick={() => setShowHistory(false)} title="Close history">✕</button>
+                            <button className="close-history-btn" onClick={() => {
+                                if (Date.now() - historyOpenedAtRef.current < 700) return;
+                                setShowHistory(false);
+                            }} title="Close history">✕</button>
                         </div>
                     </div>
                     <div className="history-content">
@@ -567,7 +570,7 @@ const Lecture = () => {
                     onClick={() => {
                         if (historyClickLockRef.current) return;
                         historyClickLockRef.current = true;
-                        setTimeout(() => { historyClickLockRef.current = false; }, 400);
+                        setTimeout(() => { historyClickLockRef.current = false; }, 800);
                         setShowHistory(prev => {
                             const next = !prev;
                             if (next) setShowProgressDashboard(false);
