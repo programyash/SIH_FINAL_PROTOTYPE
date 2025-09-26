@@ -38,6 +38,7 @@ const Lecture = () => {
     const [quizRecommendation, setQuizRecommendation] = useState(null);
 
     const location = useLocation();
+    const historyClickLockRef = useRef(false);
 
     // when page loads, check if course was passed from Home
     useEffect(() => {
@@ -548,11 +549,30 @@ const Lecture = () => {
             )}
 
             <div className="floating-action-buttons">
-                <button className="fab" onClick={() => setShowProgressDashboard(prev => !prev)} title={showProgressDashboard ? "Close Progress" : "Open Progress Dashboard"}>
+                <button className="fab" onClick={() => {
+                    setShowProgressDashboard(prev => {
+                        const next = !prev;
+                        if (next) setShowHistory(false);
+                        return next;
+                    });
+                }} title={showProgressDashboard ? "Close Progress" : "Open Progress Dashboard"}>
                     {showProgressDashboard ? "✕" : "📊"}
                 </button>
-                <button className="fab" onClick={() => setShowHistory(true)} title="Open Learning History">
-                    📚
+                <button
+                    className="fab"
+                    onClick={() => {
+                        if (historyClickLockRef.current) return;
+                        historyClickLockRef.current = true;
+                        setTimeout(() => { historyClickLockRef.current = false; }, 400);
+                        setShowHistory(prev => {
+                            const next = !prev;
+                            if (next) setShowProgressDashboard(false);
+                            return next;
+                        });
+                    }}
+                    title={showHistory ? "Close Learning History" : "Open Learning History"}
+                >
+                    {showHistory ? "✕" : "📚"}
                 </button>
             </div>
 
