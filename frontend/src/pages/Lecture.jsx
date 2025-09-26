@@ -551,8 +551,8 @@ const Lecture = () => {
                 <button className="fab" onClick={() => setShowProgressDashboard(prev => !prev)} title={showProgressDashboard ? "Close Progress" : "Open Progress Dashboard"}>
                     {showProgressDashboard ? "✕" : "📊"}
                 </button>
-                <button className="fab" onClick={() => setShowHistory(prev => !prev)} title={showHistory ? "Close History" : "Open Learning History"}>
-                    {showHistory ? "✕" : "📚"}
+                <button className="fab" onClick={() => setShowHistory(true)} title="Open Learning History">
+                    📚
                 </button>
             </div>
 
