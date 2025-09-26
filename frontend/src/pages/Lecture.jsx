@@ -51,6 +51,9 @@ const Lecture = () => {
     const [toast, setToast] = useState({ show: false, message: "", type: "info" });
 
     const videoRef = useRef(null);
+    const streamAbortRef = useRef(null);
+    const streamMetaRef = useRef(null);
+    const streamContentRef = useRef("");
 
     // Load history on component mount
     useEffect(() => {
@@ -145,6 +148,11 @@ const Lecture = () => {
             return;
         }
         setIsLoading(true);
+        // cancel any previous stream
+        if (streamAbortRef.current) {
+            try { streamAbortRef.current.abort(); } catch (e) { }
+            streamAbortRef.current = null;
+        }
         if (!customQuery) {
             setLectureContent(null);
             setSyllabus([]);
@@ -154,37 +162,80 @@ const Lecture = () => {
             setCourseTitle("");
         }
         try {
-            const response = await fetch("http://localhost:8000/course", {
+            const controller = new AbortController();
+            streamAbortRef.current = controller;
+            streamMetaRef.current = null;
+            streamContentRef.current = "";
+
+            const response = await fetch("http://localhost:8000/course-stream", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query, thread_id: "1" }),
+                signal: controller.signal
             });
-            if (!response.ok) throw new Error("Failed to fetch course content");
-            const data = await response.json();
-            if (data.success) {
-                setCourseTitle(data.topic || query);
-                setLectureContent(data.response);
-                setSyllabus((data.mode === "course" && Array.isArray(data.syllabus)) ? data.syllabus : []);
-                setTopic(data.topic || "");
-                setMode(data.mode || "");
-                setCurrentLesson(data.mode === "course" && typeof data.current_lesson === "number" ? data.current_lesson : 0);
-                if (data.mode === "course" && data.syllabus?.length > 0) {
-                    saveToHistory({
-                        topic: data.topic || query,
-                        lessonTitle: data.syllabus[0]?.title || "Lesson 1",
-                        content: data.response,
-                        syllabus: data.syllabus,
-                        currentLesson: 0
-                    });
+            if (!response.ok || !response.body) throw new Error("Failed to start stream");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let ndjsonBuffer = "";
+
+            const processText = (text) => {
+                ndjsonBuffer += text;
+                const lines = ndjsonBuffer.split("\n");
+                ndjsonBuffer = lines.pop(); // remainder
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const evt = JSON.parse(line);
+                        if (evt.type === "meta") {
+                            streamMetaRef.current = evt;
+                            const theTopic = evt.topic || query;
+                            setCourseTitle(theTopic);
+                            setTopic(theTopic);
+                            setMode(evt.mode || "");
+                            setSyllabus(Array.isArray(evt.syllabus) ? evt.syllabus : []);
+                            setCurrentLesson(typeof evt.current_lesson === "number" ? evt.current_lesson : 0);
+                            setLectureContent("");
+                        } else if (evt.type === "chunk") {
+                            streamContentRef.current += (evt.markdown || "") + "\n\n";
+                            setLectureContent(prev => (prev || "") + (evt.markdown || "") + "\n\n");
+                        } else if (evt.type === "done") {
+                            // save to history after full content received
+                            const meta = streamMetaRef.current;
+                            if (meta && meta.mode === "course" && Array.isArray(meta.syllabus) && meta.syllabus.length > 0) {
+                                const firstTitle = meta.syllabus[0]?.title || `Lesson ${ (meta.current_lesson||0) + 1 }`;
+                                saveToHistory({
+                                    topic: meta.topic || query,
+                                    lessonTitle: firstTitle,
+                                    content: streamContentRef.current,
+                                    syllabus: meta.syllabus,
+                                    currentLesson: meta.current_lesson || 0
+                                });
+                            }
+                        } else if (evt.type === "error") {
+                            showToast("Error: " + (evt.error || "Unknown error"), "error");
+                        }
+                    } catch (e) { /* ignore parse errors per line */ }
                 }
-            } else {
-                showToast("Error: " + data.error, "error");
+            };
+
+            // read loop
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                processText(decoder.decode(value, { stream: true }));
             }
+            // flush any remaining buffered text
+            const tail = decoder.decode();
+            if (tail) processText(tail);
         } catch (error) {
-            console.error("Error fetching course content: ", error);
-            showToast("Failed to connect to the server.", "error");
+            if (error?.name !== 'AbortError') {
+                console.error("Stream error: ", error);
+                showToast("Failed to connect to the server.", "error");
+            }
         } finally {
             setIsLoading(false);
+            streamAbortRef.current = null;
         }
     };
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from backend.core import workflow
 import os
@@ -124,6 +124,80 @@ def course(stu_query: LectureQuery):
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+def _chunk_markdown_preserving_blocks(text: str, max_chunk_len: int = 1500):
+    """Yield markdown chunks without breaking headings or fenced code blocks."""
+    if not text:
+        return
+    lines = text.split('\n')
+    chunks = []
+    buf = []
+    in_code = False
+    fence = None
+    current_len = 0
+    def flush():
+        nonlocal buf, current_len
+        if buf:
+            chunk = '\n'.join(buf).strip('\n')
+            if chunk:
+                chunks.append(chunk)
+            buf = []
+            current_len = 0
+    for line in lines:
+        # detect fenced code start/end
+        if re.match(r"^```", line):
+            in_code = not in_code
+            fence = '```' if in_code else None
+            buf.append(line)
+            current_len += len(line) + 1
+            continue
+        # if starting a new top-level block (heading or hr) and buffer has content, flush first
+        if not in_code and (re.match(r"^#{1,6}\\s", line) or re.match(r"^---+$", line.strip())):
+            flush()
+            buf.append(line)
+            current_len += len(line) + 1
+            continue
+        # normal line accumulation
+        buf.append(line)
+        current_len += len(line) + 1
+        # split only on blank line when not inside code and chunk too large
+        if not in_code and current_len >= max_chunk_len and line.strip() == "":
+            flush()
+    flush()
+    for c in chunks:
+        yield c
+
+@app.post("/course-stream")
+def course_stream(stu_query: LectureQuery):
+    query = stu_query.query
+    thread_id = stu_query.thread_id
+
+    config = {"configurable": {"thread_id": thread_id}}
+    state = {"query": query}
+
+    def generator():
+        try:
+            result = workflow.invoke(state, config=config)
+            meta = {
+                "type": "meta",
+                "success": True,
+                "mode": result.get("mode", ""),
+                "topic": result.get("topic", ""),
+                "syllabus": result.get("syllabus", []),
+                "current_lesson": result.get("current_lesson", 0),
+                "query": result.get("query", query)
+            }
+            yield json.dumps(meta) + "\n"
+
+            full_markdown = result.get("response", "")
+            # Stream markdown in safe chunks
+            for md in _chunk_markdown_preserving_blocks(full_markdown):
+                yield json.dumps({"type": "chunk", "markdown": md}) + "\n"
+            yield json.dumps({"type": "done"}) + "\n"
+        except Exception as e:
+            yield json.dumps({"type": "error", "error": str(e)}) + "\n"
+
+    return StreamingResponse(generator(), media_type="application/x-ndjson")
 
 @app.post("/doubt")
 def handle_doubt(doubt_query: DoubtQuery):
