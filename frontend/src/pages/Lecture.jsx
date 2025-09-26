@@ -39,6 +39,7 @@ const Lecture = () => {
 
     const location = useLocation();
     const historyClickLockRef = useRef(false);
+    const historyOpenedAtRef = useRef(0);
 
     // when page loads, check if course was passed from Home
     useEffect(() => {
@@ -94,6 +95,9 @@ const Lecture = () => {
     };
 
     const openHistoryLesson = (historyEntry) => {
+        if (Date.now() - historyOpenedAtRef.current < 600) {
+            return;
+        }
         setTopic(historyEntry.topic);
         setCourseTitle(historyEntry.topic);
         setLectureContent(historyEntry.content);
@@ -567,6 +571,7 @@ const Lecture = () => {
                         setShowHistory(prev => {
                             const next = !prev;
                             if (next) setShowProgressDashboard(false);
+                            if (next) historyOpenedAtRef.current = Date.now();
                             return next;
                         });
                     }}
