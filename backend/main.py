@@ -194,10 +194,8 @@ def course_stream(stu_query: LectureQuery):
             }
             yield json.dumps(meta) + "\n"
 
-            full_markdown = result.get("response", "")
-            # Stream markdown in safe chunks
-            for md in _chunk_markdown_preserving_blocks(full_markdown):
-                yield json.dumps({"type": "chunk", "markdown": md}) + "\n"
+            # 🎯 FIXED: Don't stream the full course content, just return metadata
+            # The frontend will handle streaming individual lessons
             yield json.dumps({"type": "done"}) + "\n"
         except Exception as e:
             yield json.dumps({"type": "error", "error": str(e)}) + "\n"

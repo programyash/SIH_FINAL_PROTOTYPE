@@ -36,6 +36,7 @@ const Lecture = () => {
     const [showQuiz, setShowQuiz] = useState(false);
     const [showProgressDashboard, setShowProgressDashboard] = useState(false);
     const [quizRecommendation, setQuizRecommendation] = useState(null);
+    const [currentThreadId, setCurrentThreadId] = useState(null);
 
     const location = useLocation();
     const historyClickLockRef = useRef(false);
@@ -159,12 +160,15 @@ const Lecture = () => {
             streamAbortRef.current = null;
         }
         if (!customQuery) {
-            setLectureContent(null);
+            // 🎯 FIXED: Clear all state when starting a new course search
+            setLectureContent("");
             setSyllabus([]);
             setTopic("");
             setMode("");
             setCurrentLesson(0);
             setCourseTitle("");
+            setDoubtAnswers([]);
+            setDoubtsList([]);
         }
         try {
             const controller = new AbortController();
@@ -172,10 +176,13 @@ const Lecture = () => {
             streamMetaRef.current = null;
             streamContentRef.current = "";
 
+            // 🎯 FIXED: Generate unique thread_id for each new course search
+            const uniqueThreadId = `course_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            setCurrentThreadId(uniqueThreadId);
             const response = await fetch("http://localhost:8000/course-stream", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query, thread_id: "1" }),
+                body: JSON.stringify({ query, thread_id: uniqueThreadId }),
                 signal: controller.signal
             });
             if (!response.ok || !response.body) throw new Error("Failed to start stream");
@@ -205,23 +212,12 @@ const Lecture = () => {
                             streamContentRef.current += (evt.markdown || "") + "\n\n";
                             setLectureContent(prev => (prev || "") + (evt.markdown || "") + "\n\n");
                         } else if (evt.type === "done") {
-                            // save to history after full content received
+                            // Course setup complete - now stream the first lesson
                             const meta = streamMetaRef.current;
                             if (meta && meta.mode === "course" && Array.isArray(meta.syllabus) && meta.syllabus.length > 0) {
-                                const firstTitle = meta.syllabus[0]?.title || `Lesson ${ (meta.current_lesson||0) + 1 }`;
-                                saveToHistory({
-                                    topic: meta.topic || query,
-                                    lessonTitle: firstTitle,
-                                    content: streamContentRef.current,
-                                    syllabus: meta.syllabus,
-                                    currentLesson: meta.current_lesson || 0
-                                });
-                                
-                                // 🎯 NEW: Stream the first lesson content after course setup
-                                if (meta.syllabus.length > 0) {
-                                    const firstLessonTitle = meta.syllabus[0]?.title || `Lesson 1`;
-                                    streamLessonContent(meta.topic || query, 0, firstLessonTitle);
-                                }
+                                // 🎯 FIXED: Stream the first lesson content after course setup
+                                const firstLessonTitle = meta.syllabus[0]?.title || `Lesson 1`;
+                                streamLessonContent(meta.topic || query, 0, firstLessonTitle);
                             }
                         } else if (evt.type === "error") {
                             showToast("Error: " + (evt.error || "Unknown error"), "error");
@@ -294,7 +290,15 @@ const Lecture = () => {
                             // Stream lesson content
                             setLectureContent(prev => (prev || "") + (evt.markdown || ""));
                         } else if (evt.type === "done") {
-                            // Lesson streaming complete
+                            // Lesson streaming complete - save to history
+                            const lessonTitle = syllabus[currentLesson]?.title || `Lesson ${currentLesson + 1}`;
+                            saveToHistory({
+                                topic: topic || courseTitle,
+                                lessonTitle: lessonTitle,
+                                content: lectureContent,
+                                syllabus: syllabus,
+                                currentLesson: currentLesson
+                            });
                             showToast("Lesson loaded successfully!", "success");
                         } else if (evt.type === "error") {
                             showToast("Error: " + (evt.error || "Unknown error"), "error");
@@ -428,7 +432,7 @@ const Lecture = () => {
                     doubt: currentDoubt,
                     lesson_context: lectureContent,
                     topic: topic || courseTitle,
-                    thread_id: "1"
+                    thread_id: currentThreadId || "1"
                 }),
             });
             if (!response.ok) throw new Error("Failed to get doubt answer");
