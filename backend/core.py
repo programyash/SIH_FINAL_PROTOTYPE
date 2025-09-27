@@ -28,6 +28,21 @@ def gemini_invoke(prompt: str) -> str:
         print("Gemini API error: ", e)
         return ""
 
+def gemini_stream(prompt: str):
+    """Stream content from Gemini API"""
+    try:
+        response = client_gemini.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            stream=True
+        )
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+    except Exception as e:
+        print("Gemini streaming error: ", e)
+        yield f"Error: {e}"
+
 saver = MongoDBSaver(
     client=client,
     db_name="chatbot_langgraph",
@@ -522,6 +537,20 @@ def generate_lesson_text(topic: str, index: int, title: str):
         return res
     except Exception as e:
         return f"Sorry, couldn't generate lesson due to: {e}"
+
+def generate_lesson_text_stream(topic: str, index: int, title: str):
+    """Generate lesson content with streaming"""
+    try:
+        prompt = lesson_prompt.format(
+            topic=topic,
+            index_plus1=index+1,
+            next_index=index+2,
+            title=title
+        )
+        for chunk in gemini_stream(prompt):
+            yield chunk
+    except Exception as e:
+        yield f"Sorry, couldn't generate lesson due to: {e}"
     
 def generate_concept_explanation(concept: str):
     try:

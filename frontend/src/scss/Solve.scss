@@ -1,8 +1,3 @@
-// GyaanSetu AI - Problem Solving UI
-// Theme: "Cosmic Code"
-// Location: Amritsar, Punjab, India
-// Date: September 22, 2025 - 11:45 AM IST
-
 // --- 1. Variables & Global Styles ---
 :root {
     // Color Palette
@@ -11,8 +6,8 @@
     --c-border-asteroid: #30363d;
     --c-text-star-bright: #c9d1d9;
     --c-text-star-dim: #8b949e;
-    --c-accent-starship: #58a6ff; // A bright, clear blue
-    --c-accent-wormhole: #e975c5; // A vibrant pink/magenta
+    --c-accent-starship: #58a6ff; // bright blue
+    --c-accent-wormhole: #e975c5; // vibrant pink/magenta
     --c-action-primary: #238636;
     --c-action-primary-hover: #2ea043;
 
@@ -33,7 +28,9 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
-    height: calc(100vh - 3rem);
+    /* ✅ Allow natural growth instead of fixed viewport height */
+    align-items: flex-start;
+    padding-bottom: 2rem;
 }
 
 .problem-pane,
@@ -41,17 +38,16 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-}
-
-.problem-pane{
-    margin-top: 100px;
+    /* ✅ Height adjusts automatically */
+    height: auto;
+    align-self: start;
+    margin-top: 8rem;
 }
 
 // --- 3. Panel Styling ---
 .problem-pane,
 .compiler-area,
 .result-area {
-    
     background-color: var(--c-panel-nebula);
     border: 1px solid var(--c-border-asteroid);
     border-radius: var(--border-radius);
@@ -60,13 +56,16 @@ body {
 }
 
 .compiler-area {
-    margin-top: 100px;
-    overflow-y: scroll;
+    /* ✅ Let compiler grow with content */
+    height: auto;
+    overflow: visible;
     flex: 3;
 }
 
 .result-area {
-    overflow-y: scroll;
+    /* ✅ Let result grow with content */
+    height: auto;
+    overflow: visible;
     flex: 2;
 }
 
@@ -105,7 +104,7 @@ body {
     &::after {
         content: '';
         position: absolute;
-        bottom: -13px; // Aligns with the panel-header border
+        bottom: -13px;
         left: 0;
         width: 100%;
         height: 2px;
@@ -130,7 +129,6 @@ body {
 }
 
 .panel-controls {
-    margin-top: 0;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -163,9 +161,7 @@ body {
 
 // --- 5. Content Areas ---
 .content-area {
-    margin-top: 0;
     padding: 1rem 1.5rem;
-    overflow-y: scroll;
     line-height: 1.6;
 
     h3 {
@@ -196,7 +192,6 @@ body {
 
 .result-content,
 .content-area.placeholder {
-    margin-top: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -221,6 +216,7 @@ body {
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .topic-input {
@@ -263,7 +259,7 @@ body {
 .questions-list {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: auto;
 }
 
 .questions-grid {
@@ -271,8 +267,7 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
     padding: 1rem;
-    overflow-y: auto;
-    flex: 1;
+    overflow-y: visible;
 }
 
 .question-card {
@@ -435,7 +430,6 @@ body {
 
     .solve-page-container {
         grid-template-columns: 1fr;
-        height: auto;
     }
 
     .questions-grid {

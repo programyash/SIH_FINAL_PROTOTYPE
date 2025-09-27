@@ -216,6 +216,12 @@ const Lecture = () => {
                                     syllabus: meta.syllabus,
                                     currentLesson: meta.current_lesson || 0
                                 });
+                                
+                                // 🎯 NEW: Stream the first lesson content after course setup
+                                if (meta.syllabus.length > 0) {
+                                    const firstLessonTitle = meta.syllabus[0]?.title || `Lesson 1`;
+                                    streamLessonContent(meta.topic || query, 0, firstLessonTitle);
+                                }
                             }
                         } else if (evt.type === "error") {
                             showToast("Error: " + (evt.error || "Unknown error"), "error");
@@ -244,11 +250,125 @@ const Lecture = () => {
         }
     };
 
+    // 🎯 NEW: Stream lesson content specifically
+    const streamLessonContent = async (topic, lessonIndex, lessonTitle) => {
+        setIsLoading(true);
+        setLectureContent(""); // Clear previous content
+        
+        try {
+            const controller = new AbortController();
+            streamAbortRef.current = controller;
+
+            const response = await fetch("http://localhost:8000/lesson-stream", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    topic: topic,
+                    lesson_index: lessonIndex,
+                    lesson_title: lessonTitle
+                }),
+                signal: controller.signal
+            });
+
+            if (!response.ok || !response.body) throw new Error("Failed to start lesson stream");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let ndjsonBuffer = "";
+
+            const processText = (text) => {
+                ndjsonBuffer += text;
+                const lines = ndjsonBuffer.split("\n");
+                ndjsonBuffer = lines.pop(); // remainder
+                
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const evt = JSON.parse(line);
+                        if (evt.type === "meta") {
+                            // Update lesson metadata
+                            setTopic(evt.topic);
+                            setCourseTitle(evt.topic);
+                            setCurrentLesson(evt.lesson_index);
+                        } else if (evt.type === "chunk") {
+                            // Stream lesson content
+                            setLectureContent(prev => (prev || "") + (evt.markdown || ""));
+                        } else if (evt.type === "done") {
+                            // Lesson streaming complete
+                            showToast("Lesson loaded successfully!", "success");
+                        } else if (evt.type === "error") {
+                            showToast("Error: " + (evt.error || "Unknown error"), "error");
+                        }
+                    } catch (e) { /* ignore parse errors per line */ }
+                }
+            };
+
+            // Read loop
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                processText(decoder.decode(value, { stream: true }));
+            }
+            
+            // Flush any remaining buffered text
+            const tail = decoder.decode();
+            if (tail) processText(tail);
+        } catch (error) {
+            if (error?.name !== 'AbortError') {
+                console.error("Lesson stream error: ", error);
+                showToast("Failed to load lesson content.", "error");
+            }
+        } finally {
+            setIsLoading(false);
+            streamAbortRef.current = null;
+        }
+    };
+
     // Navigation
-    const handleNext = () => handleSearch("next");
-    const handlePrevious = () => handleSearch("previous");
-    const handleRepeat = () => handleSearch("repeat");
-    const handleLessonClick = (lessonIndex) => handleSearch(`goto ${lessonIndex + 1}`);
+    const handleNext = () => {
+        if (mode === "course" && syllabus.length > 0) {
+            const nextLesson = Math.min(currentLesson + 1, syllabus.length - 1);
+            if (nextLesson !== currentLesson) {
+                setCurrentLesson(nextLesson);
+                const lessonTitle = syllabus[nextLesson]?.title || `Lesson ${nextLesson + 1}`;
+                streamLessonContent(topic || courseTitle, nextLesson, lessonTitle);
+            }
+        } else {
+            handleSearch("next");
+        }
+    };
+    
+    const handlePrevious = () => {
+        if (mode === "course" && syllabus.length > 0) {
+            const prevLesson = Math.max(currentLesson - 1, 0);
+            if (prevLesson !== currentLesson) {
+                setCurrentLesson(prevLesson);
+                const lessonTitle = syllabus[prevLesson]?.title || `Lesson ${prevLesson + 1}`;
+                streamLessonContent(topic || courseTitle, prevLesson, lessonTitle);
+            }
+        } else {
+            handleSearch("previous");
+        }
+    };
+    
+    const handleRepeat = () => {
+        if (mode === "course" && syllabus.length > 0) {
+            const lessonTitle = syllabus[currentLesson]?.title || `Lesson ${currentLesson + 1}`;
+            streamLessonContent(topic || courseTitle, currentLesson, lessonTitle);
+        } else {
+            handleSearch("repeat");
+        }
+    };
+    
+    const handleLessonClick = (lessonIndex) => {
+        if (mode === "course" && syllabus.length > 0) {
+            setCurrentLesson(lessonIndex);
+            const lessonTitle = syllabus[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
+            streamLessonContent(topic || courseTitle, lessonIndex, lessonTitle);
+        } else {
+            handleSearch(`goto ${lessonIndex + 1}`);
+        }
+    };
 
     // 📥 Download Notes
     const handleDownloadNotes = async () => {

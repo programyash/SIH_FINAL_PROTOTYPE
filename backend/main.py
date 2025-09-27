@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
-from backend.core import workflow
+from backend.core import workflow, generate_lesson_text_stream
 import os
 import tempfile
 from reportlab.lib.pagesizes import letter, A4
@@ -95,6 +95,11 @@ class CodeExecutionRequest(BaseModel):
 
 class skillRequest(BaseModel):
     skill: str
+
+class LessonStreamRequest(BaseModel):
+    topic: str
+    lesson_index: int
+    lesson_title: str
 
 @app.post("/roadmap")
 def get_roadmap(request: skillRequest):
@@ -193,6 +198,35 @@ def course_stream(stu_query: LectureQuery):
             # Stream markdown in safe chunks
             for md in _chunk_markdown_preserving_blocks(full_markdown):
                 yield json.dumps({"type": "chunk", "markdown": md}) + "\n"
+            yield json.dumps({"type": "done"}) + "\n"
+        except Exception as e:
+            yield json.dumps({"type": "error", "error": str(e)}) + "\n"
+
+    return StreamingResponse(generator(), media_type="application/x-ndjson")
+
+@app.post("/lesson-stream")
+def lesson_stream(request: LessonStreamRequest):
+    """Stream lesson content with proper formatting"""
+    topic = request.topic
+    lesson_index = request.lesson_index
+    lesson_title = request.lesson_title
+
+    def generator():
+        try:
+            # Send initial metadata
+            meta = {
+                "type": "meta",
+                "success": True,
+                "topic": topic,
+                "lesson_index": lesson_index,
+                "lesson_title": lesson_title
+            }
+            yield json.dumps(meta) + "\n"
+
+            # Stream lesson content
+            for chunk in generate_lesson_text_stream(topic, lesson_index, lesson_title):
+                yield json.dumps({"type": "chunk", "markdown": chunk}) + "\n"
+            
             yield json.dumps({"type": "done"}) + "\n"
         except Exception as e:
             yield json.dumps({"type": "error", "error": str(e)}) + "\n"
