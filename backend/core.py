@@ -1,4 +1,4 @@
-# from google import genai
+from google import genai
 from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from dotenv import load_dotenv
@@ -15,17 +15,30 @@ load_dotenv()
 MURFAI_API_KEY=os.getenv("MURFAI_API_KEY")
 client = MongoClient(os.getenv("MONGO_CLIENT"))
 
+client_gemini = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
+
+def gemini_invoke(prompt: str) -> str:
+    try:
+        response = client_gemini.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        return response.text.strip()
+    except Exception as e:
+        print("Gemini API error: ", e)
+        return ""
+
 saver = MongoDBSaver(
     client=client,
     db_name="chatbot_langgraph",
     collection_name="chatbot_sessions"
 )
 
-llm = HuggingFaceEndpoint(
-    repo_id="Qwen/Qwen3-Coder-480B-A35B-Instruct",
-    task="text-generation"
-)
-model = ChatHuggingFace(llm=llm)
+# llm = HuggingFaceEndpoint(
+#     repo_id="Qwen/Qwen3-Coder-480B-A35B-Instruct",
+#     task="text-generation"
+# )
+# model = ChatHuggingFace(llm=llm)
 
 class Agentstate(TypedDict):
     query: str
@@ -421,8 +434,10 @@ def handle_query(state: Agentstate) -> Agentstate:
 def classify_query(query: str):
     try:
         prompt = classify_prompt.format(query=query)
-        res = model.invoke(prompt)
-        parsed = safe_json_parse(res.content)
+        # res = model.invoke(prompt)
+        res = gemini_invoke(prompt)
+        # parsed = safe_json_parse(res.content)
+        parsed = safe_json_parse(res)
         if parsed and 'type' in parsed:
             parsed['type'] = parsed['type'].lower()
             if parsed['type'] not in ('course', 'concept'):
@@ -440,8 +455,10 @@ def classify_query(query: str):
 def generate_syllabus(topic: str):
     try:
         prompt = syllabus_prompt.format(topic=topic)
-        res = model.invoke(prompt)
-        parsed = safe_json_parse(res.content)
+        # res = model.invoke(prompt)
+        res = gemini_invoke(prompt)
+        # parsed = safe_json_parse(res.content)
+        parsed = safe_json_parse(res)
         if isinstance(parsed, list):
             syllabus = []
             for item in parsed:
@@ -465,8 +482,10 @@ def generate_syllabus(topic: str):
         Break down the topic into granular, focused lessons.
         Return one lesson title per line, no numbering.
         '''
-        res = model.invoke(fallback_prompt)
-        lines = [l.strip() for l in res.content.splitlines() if l.strip()]
+        # res = model.invoke(fallback_prompt)
+        res = gemini_invoke(fallback_prompt)
+        # lines = [l.strip() for l in res.content.splitlines() if l.strip()]
+        lines = [l.strip() for l in res.splitlines() if l.strip()]
         # Remove numbering and clean up titles
         clean_lines = [re.sub(r'^\d+\.\s*', '', l) for l in lines if l.strip()]
         syllabus = [{'title': line, 'summary': f'Learn {line.lower()}'} for line in clean_lines[:15]]
@@ -497,16 +516,20 @@ def generate_lesson_text(topic: str, index: int, title: str):
             next_index=index+2,
             title=title
         )
-        res = model.invoke(prompt)
-        return res.content.strip()
+        # res = model.invoke(prompt)
+        res = gemini_invoke(prompt)
+        # return res.content.strip()
+        return res
     except Exception as e:
         return f"Sorry, couldn't generate lesson due to: {e}"
     
 def generate_concept_explanation(concept: str):
     try:
         prompt = concept_prompt.format(concept=concept)
-        res = model.invoke(prompt)
-        return res.content.strip()
+        # res = model.invoke(prompt)
+        res = gemini_invoke(prompt)
+        # return res.content.strip()
+        return res
     except Exception as e:
         # fallback short explanation
         return f"Sorry, couldn't generate explanation due to: {e}"
