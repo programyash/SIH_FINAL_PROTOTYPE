@@ -1,4 +1,4 @@
-from google import genai
+import google.generativeai as genai
 from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from dotenv import load_dotenv
@@ -15,33 +15,29 @@ load_dotenv()
 MURFAI_API_KEY=os.getenv("MURFAI_API_KEY")
 client = MongoClient(os.getenv("MONGO_CLIENT"))
 
-client_gemini = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
+# Configure Gemini API
+genai.configure(api_key=os.getenv("GENAI_API_KEY"))
+model = genai.GenerativeModel('gemini-2.0-flash')
 
-def gemini_invoke(prompt: str) -> str:
+def gemini_invoke(prompt: str, stream: bool = False):
+    """Generate content from Gemini API with optional streaming"""
     try:
-        response = client_gemini.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        return response.text.strip()
+        if stream:
+            # Use stream_generate_content for streaming
+            response = model.generate_content(prompt, stream=True)
+            for chunk in response:
+                if chunk.text:
+                    yield chunk.text
+        else:
+            # Use generate_content for non-streaming
+            response = model.generate_content(prompt)
+            return response.text.strip()
     except Exception as e:
         print("Gemini API error: ", e)
-        return ""
-
-def gemini_stream(prompt: str):
-    """Stream content from Gemini API"""
-    try:
-        response = client_gemini.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            stream=True
-        )
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
-    except Exception as e:
-        print("Gemini streaming error: ", e)
-        yield f"Error: {e}"
+        if stream:
+            yield f"Error: {e}"
+        else:
+            return f"Error: {e}"
 
 saver = MongoDBSaver(
     client=client,
@@ -547,7 +543,7 @@ def generate_lesson_text_stream(topic: str, index: int, title: str):
             next_index=index+2,
             title=title
         )
-        for chunk in gemini_stream(prompt):
+        for chunk in gemini_invoke(prompt, stream=True):
             yield chunk
     except Exception as e:
         yield f"Sorry, couldn't generate lesson due to: {e}"

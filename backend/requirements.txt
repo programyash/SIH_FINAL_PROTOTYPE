@@ -9,4 +9,4 @@ langchain-huggingface==0.0.1
 langgraph==0.0.20
 pymongo==4.6.0
 reportlab==4.0.7
-google-generativeai==0.3.2
+google-generativeai==0.8.3

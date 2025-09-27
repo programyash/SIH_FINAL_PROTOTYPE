@@ -11,7 +11,7 @@ load_dotenv()
 def test_gemini_streaming():
     """Test the Gemini streaming functionality"""
     try:
-        from core import gemini_stream
+        from core import gemini_invoke
         
         print("Testing Gemini streaming...")
         print("=" * 50)
@@ -24,10 +24,10 @@ def test_gemini_streaming():
         print("-" * 30)
         
         chunk_count = 0
-        for chunk in gemini_stream(prompt):
+        for chunk in gemini_invoke(prompt, stream=True):
             print(chunk, end='', flush=True)
             chunk_count += 1
-            if chunk_count > 10:  # Limit for testing
+            if chunk_count > 5:  # Limit for testing
                 print("\n... (truncated for testing)")
                 break
         
