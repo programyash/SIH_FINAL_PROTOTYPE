@@ -38,6 +38,10 @@ const Lecture = () => {
     const [currentThreadId, setCurrentThreadId] = useState(null);
     const [streamingContent, setStreamingContent] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
+    const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+    const [isTTSPlaying, setIsTTSPlaying] = useState(false);
+    const [isTTSPaused, setIsTTSPaused] = useState(false);
+    const [ttsUtterance, setTtsUtterance] = useState(null);
 
     const location = useLocation();
     const historyClickLockRef = useRef(false);
@@ -64,12 +68,14 @@ const Lecture = () => {
         loadHistory();
     }, []);
 
-    // Cleanup streaming animation on unmount
+    // Cleanup streaming animation and TTS on unmount
     useEffect(() => {
         return () => {
             if (streamingTimeoutRef.current) {
                 clearInterval(streamingTimeoutRef.current);
             }
+            // Stop any ongoing TTS
+            speechSynthesis.cancel();
         };
     }, []);
 
@@ -97,11 +103,113 @@ const Lecture = () => {
                 clearInterval(streamInterval);
                 setIsStreaming(false);
                 if (onComplete) onComplete();
+                
+                // Auto-start TTS when streaming is complete
+                if (isTTSEnabled && text.trim()) {
+                    setTimeout(() => {
+                        speakText(text);
+                    }, 500); // Small delay to ensure content is fully rendered
+                }
             }
         }, 20); // Adjust speed here (lower = faster)
         
         // Store interval reference for cleanup
         streamingTimeoutRef.current = streamInterval;
+    };
+
+    // 🎤 NEW: Text-to-Speech Functions
+    const speakText = (text) => {
+        if (!text || !isTTSEnabled) return;
+        
+        // Stop any existing speech
+        stopTTS();
+        
+        // Clean text for better speech
+        const cleanText = text
+            .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+            .replace(/`[^`]+`/g, '') // Remove inline code
+            .replace(/#{1,6}\s+/g, '') // Remove markdown headers
+            .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+            .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+            .replace(/\n{3,}/g, '\n\n') // Reduce multiple newlines
+            .trim();
+        
+        if (!cleanText) return;
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        // Configure speech settings
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        utterance.lang = 'en-US';
+        
+        // Event handlers
+        utterance.onstart = () => {
+            setIsTTSPlaying(true);
+            setIsTTSPaused(false);
+        };
+        
+        utterance.onend = () => {
+            setIsTTSPlaying(false);
+            setIsTTSPaused(false);
+            setTtsUtterance(null);
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('TTS Error:', event.error);
+            setIsTTSPlaying(false);
+            setIsTTSPaused(false);
+            setTtsUtterance(null);
+        };
+        
+        setTtsUtterance(utterance);
+        speechSynthesis.speak(utterance);
+    };
+
+    const pauseTTS = () => {
+        if (speechSynthesis.speaking && !speechSynthesis.paused) {
+            speechSynthesis.pause();
+            setIsTTSPaused(true);
+        }
+    };
+
+    const resumeTTS = () => {
+        if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+            setIsTTSPaused(false);
+        }
+    };
+
+    const stopTTS = () => {
+        speechSynthesis.cancel();
+        setIsTTSPlaying(false);
+        setIsTTSPaused(false);
+        setTtsUtterance(null);
+    };
+
+    const toggleTTS = () => {
+        if (isTTSPlaying) {
+            if (isTTSPaused) {
+                resumeTTS();
+            } else {
+                pauseTTS();
+            }
+        } else if (lectureContent || streamingContent) {
+            speakText(streamingContent || lectureContent);
+        }
+    };
+
+    const toggleTTSEngine = () => {
+        if (isTTSEnabled) {
+            stopTTS();
+            setIsTTSEnabled(false);
+            showToast("Text-to-Speech disabled", "info");
+        } else {
+            setIsTTSEnabled(true);
+            showToast("Text-to-Speech enabled", "success");
+        }
     };
 
     // 📚 Learning History Management
@@ -199,6 +307,9 @@ const Lecture = () => {
         }
         setIsStreaming(false);
         setStreamingContent("");
+        
+        // Stop any ongoing TTS
+        stopTTS();
         if (!customQuery) {
             // 🎯 FIXED: Clear all state when starting a new course search
             setLectureContent("");
@@ -570,6 +681,32 @@ const Lecture = () => {
                                                 {isLoading ? <div className="loading-spinner small"></div> : <span className="btn-icon">🔁</span>}
                                                 <span className="btn-text">Repeat</span>
                                             </button>
+                                            
+                                            {/* 🎤 TTS Controls */}
+                                            <button 
+                                                className={`nav-btn tts-toggle-btn ${isTTSEnabled ? 'enabled' : 'disabled'}`} 
+                                                onClick={toggleTTSEngine}
+                                                title={isTTSEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}
+                                            >
+                                                <span className="btn-icon">{isTTSEnabled ? "🔊" : "🔇"}</span>
+                                                <span className="btn-text">{isTTSEnabled ? "TTS On" : "TTS Off"}</span>
+                                            </button>
+                                            
+                                            {isTTSEnabled && (lectureContent || streamingContent) && (
+                                                <button 
+                                                    className={`nav-btn tts-play-btn ${isTTSPlaying ? (isTTSPaused ? 'paused' : 'playing') : 'stopped'}`} 
+                                                    onClick={toggleTTS}
+                                                    title={isTTSPlaying ? (isTTSPaused ? "Resume Speech" : "Pause Speech") : "Start Speech"}
+                                                >
+                                                    <span className="btn-icon">
+                                                        {isTTSPlaying ? (isTTSPaused ? "▶️" : "⏸️") : "🎤"}
+                                                    </span>
+                                                    <span className="btn-text">
+                                                        {isTTSPlaying ? (isTTSPaused ? "Resume" : "Pause") : "Speak"}
+                                                    </span>
+                                                </button>
+                                            )}
+                                            
                                             <button className="nav-btn download-btn" onClick={handleDownloadNotes} disabled={isDownloading || !lectureContent}>
                                                 {isDownloading ? <div className="loading-spinner small"></div> : <span className="btn-icon">📥</span>}
                                                 <span className="btn-text">Download Notes</span>

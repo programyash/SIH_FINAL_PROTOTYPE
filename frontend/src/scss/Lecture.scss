@@ -1212,3 +1212,66 @@
   }
 }
 
+// --- 🎤 TTS Control Styles ---
+.nav-btn {
+  &.tts-toggle-btn {
+    &.enabled {
+      background: var(--accent-green);
+      color: white;
+      
+      &:hover:not(:disabled) {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      }
+    }
+    
+    &.disabled {
+      background: var(--accent-red);
+      color: white;
+      
+      &:hover:not(:disabled) {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      }
+    }
+  }
+
+  &.tts-play-btn {
+    &.playing {
+      background: var(--accent-yellow);
+      color: white;
+      
+      &:hover:not(:disabled) {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+      }
+    }
+    
+    &.paused {
+      background: var(--primary-blue);
+      color: white;
+      
+      &:hover:not(:disabled) {
+        background: var(--primary-blue-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+    }
+    
+    &.stopped {
+      background: var(--bg-light);
+      color: var(--text-primary);
+      
+      &:hover:not(:disabled) {
+        background: var(--primary-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+}
+
