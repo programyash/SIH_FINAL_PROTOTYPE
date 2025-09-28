@@ -687,6 +687,24 @@
   }
 }
 
+// --- ✨ NEW: Streaming Cursor Animation ---
+.streaming-cursor {
+  display: inline-block;
+  color: var(--primary-blue);
+  font-weight: bold;
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 // --- ✨ NEW: Design System Variables ---

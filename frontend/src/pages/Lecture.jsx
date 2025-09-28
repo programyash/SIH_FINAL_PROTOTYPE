@@ -9,7 +9,6 @@ import { coy } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Quiz from "./Quiz";
 import ProgressDashboard from "./ProgressDashboard";
 import "../scss/Lecture.scss";
-import avatar from "../data/avatarfinal.mp4"
 // --- Helper Component for Icons ---
 const Icon = ({ path }) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,6 +36,8 @@ const Lecture = () => {
     const [showProgressDashboard, setShowProgressDashboard] = useState(false);
     const [quizRecommendation, setQuizRecommendation] = useState(null);
     const [currentThreadId, setCurrentThreadId] = useState(null);
+    const [streamingContent, setStreamingContent] = useState("");
+    const [isStreaming, setIsStreaming] = useState(false);
 
     const location = useLocation();
     const historyClickLockRef = useRef(false);
@@ -53,14 +54,23 @@ const Lecture = () => {
     // ✨ NEW: State for Toast Notifications
     const [toast, setToast] = useState({ show: false, message: "", type: "info" });
 
-    const videoRef = useRef(null);
     const streamAbortRef = useRef(null);
     const streamMetaRef = useRef(null);
     const streamContentRef = useRef("");
+    const streamingTimeoutRef = useRef(null);
 
     // Load history on component mount
     useEffect(() => {
         loadHistory();
+    }, []);
+
+    // Cleanup streaming animation on unmount
+    useEffect(() => {
+        return () => {
+            if (streamingTimeoutRef.current) {
+                clearInterval(streamingTimeoutRef.current);
+            }
+        };
     }, []);
 
     // ✨ NEW: Function to show toast notifications
@@ -69,6 +79,29 @@ const Lecture = () => {
         setTimeout(() => {
             setToast({ show: false, message: "", type: "info" });
         }, 3000); // Hide after 3 seconds
+    };
+
+    // 🎯 NEW: Letter-by-letter streaming animation
+    const streamTextLetterByLetter = (text, onComplete) => {
+        if (!text) return;
+        
+        setIsStreaming(true);
+        setStreamingContent("");
+        
+        let currentIndex = 0;
+        const streamInterval = setInterval(() => {
+            if (currentIndex < text.length) {
+                setStreamingContent(prev => prev + text[currentIndex]);
+                currentIndex++;
+            } else {
+                clearInterval(streamInterval);
+                setIsStreaming(false);
+                if (onComplete) onComplete();
+            }
+        }, 20); // Adjust speed here (lower = faster)
+        
+        // Store interval reference for cleanup
+        streamingTimeoutRef.current = streamInterval;
     };
 
     // 📚 Learning History Management
@@ -159,6 +192,13 @@ const Lecture = () => {
             try { streamAbortRef.current.abort(); } catch (e) { }
             streamAbortRef.current = null;
         }
+        // Clear streaming animation
+        if (streamingTimeoutRef.current) {
+            clearInterval(streamingTimeoutRef.current);
+            streamingTimeoutRef.current = null;
+        }
+        setIsStreaming(false);
+        setStreamingContent("");
         if (!customQuery) {
             // 🎯 FIXED: Clear all state when starting a new course search
             setLectureContent("");
@@ -210,7 +250,9 @@ const Lecture = () => {
                             setLectureContent("");
                         } else if (evt.type === "chunk") {
                             streamContentRef.current += (evt.markdown || "") + "\n\n";
-                            setLectureContent(prev => (prev || "") + (evt.markdown || "") + "\n\n");
+                            // Start streaming animation for new content
+                            const newContent = streamContentRef.current;
+                            streamTextLetterByLetter(newContent);
                         } else if (evt.type === "done") {
                             // Course setup complete - now stream the first lesson
                             const meta = streamMetaRef.current;
@@ -287,8 +329,10 @@ const Lecture = () => {
                             setCourseTitle(evt.topic);
                             setCurrentLesson(evt.lesson_index);
                         } else if (evt.type === "chunk") {
-                            // Stream lesson content
-                            setLectureContent(prev => (prev || "") + (evt.markdown || ""));
+                            // Stream lesson content with animation
+                            const newContent = (lectureContent || "") + (evt.markdown || "");
+                            setLectureContent(newContent);
+                            streamTextLetterByLetter(newContent);
                         } else if (evt.type === "done") {
                             // Lesson streaming complete - save to history
                             const lessonTitle = syllabus[currentLesson]?.title || `Lesson ${currentLesson + 1}`;
@@ -500,7 +544,7 @@ const Lecture = () => {
                     <div className="live-lecture">
                         {courseTitle ? (
                             <>
-                                {lectureContent ? (
+                                {(lectureContent || streamingContent) ? (
                                     <div className="lecture-details">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
                                             code({ inline, className, children, ...props }) {
@@ -514,8 +558,9 @@ const Lecture = () => {
                                                 );
                                             },
                                         }}>
-                                            {lectureContent}
+                                            {streamingContent || lectureContent}
                                         </ReactMarkdown>
+                                        {isStreaming && <div className="streaming-cursor">|</div>}
                                         <div className="lecture-controls">
                                             <button className="nav-btn prev-btn" onClick={handlePrevious} disabled={isLoading || mode !== "course" || currentLesson === 0}>
                                                 {isLoading ? <div className="loading-spinner small"></div> : <span className="btn-icon">⬅️</span>}
@@ -550,12 +595,6 @@ const Lecture = () => {
                                 <p>Let's get started!</p>
                             </div>
                         )}
-                        {/* --- ✨ NEW AVATAR ELEMENT --- */}
-                    {courseTitle && (
-                        <div className="avatar-container">
-                            <video src={avatar} className="avatar-image"></video>
-                        </div>
-                    )}
                     </div>
 
                     {mode === "course" && syllabus.length > 0 && (
