@@ -639,42 +639,48 @@ const Lecture = () => {
             )}
 
             {showHistory && (
-                <div className="history-sidebar">
-                    <div className="history-header">
-                        <h3>📚 Learning History</h3>
-                        <div className="history-controls">
-                            <button className="clear-history-btn" onClick={clearHistory} title="Clear all history">🗑️</button>
-                            <button className="close-history-btn" onClick={() => {
-                                if (Date.now() - historyOpenedAtRef.current < 700) return;
-                                setShowHistory(false);
-                            }} title="Close history">✕</button>
+                <>
+                    <div className={`history-sidebar ${showHistory ? 'open' : ''}`}>
+                        <div className="history-header">
+                            <h3>📚 Learning History</h3>
+                            <div className="history-controls">
+                                <button className="clear-history-btn" onClick={clearHistory} title="Clear all history">🗑️</button>
+                                <button className="close-history-btn" onClick={() => {
+                                    if (Date.now() - historyOpenedAtRef.current < 700) return;
+                                    setShowHistory(false);
+                                }} title="Close history">✕</button>
+                            </div>
+                        </div>
+                        <div className="history-content">
+                            {learningHistory.length === 0 ? (
+                                <div className="no-history">
+                                    <p>No learning history yet</p>
+                                    <p>Start a new course to see your progress here!</p>
+                                </div>
+                            ) : (
+                                <div className="history-list">
+                                    {learningHistory.map((entry) => (
+                                        <div key={entry.id} className="history-item" onClick={() => openHistoryLesson(entry)}>
+                                            <div className="history-item-header">
+                                                <h4>{entry.topic}</h4>
+                                                <span className="history-time">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                                            </div>
+                                            <p className="history-lesson">{entry.lessonTitle}</p>
+                                            <div className="history-meta">
+                                                <span className="history-lessons">{entry.syllabus?.length || 0} lessons</span>
+                                                <span className="history-duration">{entry.duration > 0 ? `${Math.round(entry.duration / 60)}m` : 'Recent'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div className="history-content">
-                        {learningHistory.length === 0 ? (
-                            <div className="no-history">
-                                <p>No learning history yet</p>
-                                <p>Start a new course to see your progress here!</p>
-                            </div>
-                        ) : (
-                            <div className="history-list">
-                                {learningHistory.map((entry) => (
-                                    <div key={entry.id} className="history-item" onClick={() => openHistoryLesson(entry)}>
-                                        <div className="history-item-header">
-                                            <h4>{entry.topic}</h4>
-                                            <span className="history-time">{new Date(entry.timestamp).toLocaleDateString()}</span>
-                                        </div>
-                                        <p className="history-lesson">{entry.lessonTitle}</p>
-                                        <div className="history-meta">
-                                            <span className="history-lessons">{entry.syllabus?.length || 0} lessons</span>
-                                            <span className="history-duration">{entry.duration > 0 ? `${Math.round(entry.duration / 60)}m` : 'Recent'}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                    <div 
+                        className={`sidebar-overlay ${showHistory ? 'open' : ''}`}
+                        onClick={() => setShowHistory(false)}
+                    ></div>
+                </>
             )}
 
             <div className="floating-action-buttons">
