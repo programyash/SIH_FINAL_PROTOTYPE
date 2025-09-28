@@ -239,16 +239,30 @@
   max-height: 70vh;
   display: flex;
   flex-direction: column;
+  animation: slideInRight 0.5s ease-out;
 
   .syllabus-header {
     background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-    padding: 20px;
+    padding: 24px 20px;
     color: white;
     text-align: center;
+    position: relative;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .course-title {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
   }
 
   .syllabus-content {
-    padding: 16px;
+    padding: 20px;
     overflow-y: auto;
     flex: 1;
 
@@ -261,73 +275,100 @@
     .syllabus-item {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      margin-bottom: 8px;
+      gap: 14px;
+      padding: 16px;
+      margin-bottom: 10px;
       border-radius: var(--radius-md);
-      transition: var(--transition-fast);
+      transition: all 0.3s ease;
       border: 1px solid transparent;
+      position: relative;
 
       &.clickable {
         cursor: pointer;
 
         &:hover {
           background: var(--bg-light);
-          transform: translateX(4px);
+          transform: translateX(6px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
       }
 
       &.active {
         background: var(--primary-blue);
         color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 
         .lesson-number {
           background: rgba(255, 255, 255, 0.2);
           color: white;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .lesson-title {
           color: white;
+          font-weight: 700;
         }
 
         .lesson-summary {
-          color: rgba(255, 255, 255, 0.85);
+          color: rgba(255, 255, 255, 0.9);
         }
       }
 
       .lesson-number {
         flex-shrink: 0;
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         background: var(--bg-light);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
-        transition: var(--transition-fast);
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .lesson-content {
+        flex: 1;
+        min-width: 0;
       }
 
       .lesson-title {
         font-weight: 600;
         color: var(--text-primary);
+        font-size: 0.95rem;
+        line-height: 1.4;
+        margin-bottom: 4px;
+        transition: all 0.3s ease;
       }
 
       .lesson-summary {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: var(--text-secondary);
+        line-height: 1.4;
+        transition: all 0.3s ease;
       }
 
       .click-indicator {
         margin-left: auto;
         align-self: center;
         opacity: 0;
-        transition: var(--transition-fast);
+        transition: all 0.3s ease;
         color: var(--primary-blue);
+        font-size: 0.8rem;
       }
 
       &.clickable:hover .click-indicator {
         opacity: 1;
+        transform: translateX(2px);
+      }
+
+      .loading-indicator {
+        margin-left: auto;
+        align-self: center;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
       }
     }
   }
@@ -705,6 +746,59 @@
   }
 }
 
+// --- ✨ NEW: Responsive Design ---
+@media (max-width: 1200px) {
+  .lecture-area {
+    &.with-syllabus {
+      .live-lecture {
+        max-width: calc(100% - 320px); // Smaller sidebar on medium screens
+      }
+    }
+  }
+  
+  .syllabus-sidebar {
+    flex: 0 0 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lecture-area {
+    flex-direction: column;
+    gap: 16px;
+    
+    &.full-width,
+    &.with-syllabus {
+      .live-lecture {
+        max-width: 100%;
+        margin: 0;
+      }
+    }
+  }
+  
+  .syllabus-sidebar {
+    flex: none;
+    width: 100%;
+    max-height: 50vh;
+    order: -1; // Show syllabus above content on mobile
+  }
+  
+  .live-lecture {
+    padding: 20px;
+    
+    .placeholder {
+      padding: 40px 20px;
+      
+      h2 {
+        font-size: 1.8rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 // --- ✨ NEW: Design System Variables ---
@@ -854,17 +948,36 @@
   display: flex;
   gap: 24px;
   align-items: flex-start;
+  transition: all 0.4s ease-in-out;
+
+  // Full width layout when no syllabus
+  &.full-width {
+    .live-lecture {
+      flex: 1;
+      max-width: 100%;
+      margin: 0 auto;
+      width: 100%;
+    }
+  }
+
+  // Side-by-side layout when syllabus is present
+  &.with-syllabus {
+    .live-lecture {
+      flex: 1;
+      max-width: calc(100% - 404px); // 380px sidebar + 24px gap
+    }
+  }
 
   .live-lecture {
-    flex: 1;
     min-height: 500px;
     background: var(--bg-medium);
-    padding: 24px;
+    padding: 32px;
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 22px var(--shadow-color);
     border: 1px solid var(--border-color);
     max-height: 70vh;
     overflow-y: auto;
+    transition: all 0.4s ease-in-out;
 
     .placeholder {
       display: flex;
@@ -874,17 +987,87 @@
       height: 100%;
       text-align: center;
       color: var(--text-secondary);
+      padding: 60px 40px;
 
       h2 {
         color: var(--text-primary);
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+      }
+
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 0.8rem;
+        max-width: 600px;
       }
     }
 
-    .lecture-details h2 {
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
+    .lecture-details {
+      h1, h2, h3, h4, h5, h6 {
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+        color: var(--text-primary);
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        color: var(--text-primary);
+      }
+
+      h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+      }
+
+      p {
+        line-height: 1.7;
+        margin-bottom: 1.2rem;
+        font-size: 1.05rem;
+      }
+
+      ul, ol {
+        margin-bottom: 1.2rem;
+        padding-left: 1.5rem;
+        
+        li {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+      }
+
+      blockquote {
+        border-left: 4px solid var(--primary-blue);
+        padding-left: 1.5rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        background: var(--bg-light);
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-md);
+      }
+
+      code {
+        background: var(--bg-light);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.9em;
+      }
+
+      pre {
+        background: var(--bg-dark);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin: 1.5rem 0;
+        border: 1px solid var(--border-color);
+      }
     }
   }
     

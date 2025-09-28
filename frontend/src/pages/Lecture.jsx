@@ -540,7 +540,7 @@ const Lecture = () => {
                     <h3>{courseTitle || "Search a Course to Begin Your Journey"}</h3>
                 </div>
 
-                <div className="lecture-area">
+                <div className={`lecture-area ${mode === "course" && syllabus.length > 0 ? 'with-syllabus' : 'full-width'}`}>
                     <div className="live-lecture">
                         {courseTitle ? (
                             <>
