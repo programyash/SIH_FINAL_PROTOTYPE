@@ -222,7 +222,8 @@ def lesson_stream(request: LessonStreamRequest):
             yield json.dumps(meta) + "\n"
 
             # Stream lesson content
-            for chunk in generate_lesson_text_stream(topic, lesson_index, lesson_title):
+            chunks = generate_lesson_text_stream(topic, lesson_index, lesson_title)
+            for chunk in chunks:
                 yield json.dumps({"type": "chunk", "markdown": chunk}) + "\n"
             
             yield json.dumps({"type": "done"}) + "\n"
