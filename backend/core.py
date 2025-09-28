@@ -2,7 +2,7 @@ import google.generativeai as genai
 from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from dotenv import load_dotenv
-from typing import TypedDict
+from typing import TypedDict, List, Dict, Any
 import os
 import re
 import json
@@ -39,6 +39,15 @@ def gemini_invoke(prompt: str, stream: bool = False):
         else:
             return f"Error: {e}"
 
+def gemini_invoke_simple(prompt: str):
+    """Generate content from Gemini API - non-streaming only, returns string"""
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        print("Gemini API error: ", e)
+        return f"Error: {e}"
+
 def gemini_invoke_list(prompt: str):
     """Generate content from Gemini API and return as list of chunks"""
     try:
@@ -70,10 +79,10 @@ class Agentstate(TypedDict):
     response: str
     mode: str
     topic: str
-    syllabus: list
+    syllabus: List[Dict[str, str]]
     current_lesson: int
-    user_performance: dict
-    adaptive_recommendations: list
+    user_performance: Dict[str, Any]
+    adaptive_recommendations: List[Dict[str, Any]]
 
 def safe_json_parse(text: str):
     """Try to parse JSON out of model output (robust).
@@ -459,7 +468,7 @@ def classify_query(query: str):
     try:
         prompt = classify_prompt.format(query=query)
         # res = model.invoke(prompt)
-        res = gemini_invoke(prompt)
+        res = gemini_invoke_simple(prompt)
         # parsed = safe_json_parse(res.content)
         parsed = safe_json_parse(res)
         if parsed and 'type' in parsed:
@@ -480,7 +489,7 @@ def generate_syllabus(topic: str):
     try:
         prompt = syllabus_prompt.format(topic=topic)
         # res = model.invoke(prompt)
-        res = gemini_invoke(prompt)
+        res = gemini_invoke_simple(prompt)
         # parsed = safe_json_parse(res.content)
         parsed = safe_json_parse(res)
         if isinstance(parsed, list):
@@ -507,7 +516,7 @@ def generate_syllabus(topic: str):
         Return one lesson title per line, no numbering.
         '''
         # res = model.invoke(fallback_prompt)
-        res = gemini_invoke(fallback_prompt)
+        res = gemini_invoke_simple(fallback_prompt)
         # lines = [l.strip() for l in res.content.splitlines() if l.strip()]
         lines = [l.strip() for l in res.splitlines() if l.strip()]
         # Remove numbering and clean up titles
@@ -541,7 +550,7 @@ def generate_lesson_text(topic: str, index: int, title: str):
             title=title
         )
         # res = model.invoke(prompt)
-        res = gemini_invoke(prompt)
+        res = gemini_invoke_simple(prompt)
         # return res.content.strip()
         return res
     except Exception as e:
@@ -564,7 +573,7 @@ def generate_concept_explanation(concept: str):
     try:
         prompt = concept_prompt.format(concept=concept)
         # res = model.invoke(prompt)
-        res = gemini_invoke(prompt)
+        res = gemini_invoke_simple(prompt)
         # return res.content.strip()
         return res
     except Exception as e:
@@ -769,7 +778,7 @@ graph.add_node("handle_query", handle_query)
 graph.add_edge(START, "handle_query")
 graph.add_edge("handle_query", END)
 
-workflow = graph.compile(checkpointer=saver)
+workflow = graph.compile()
 
 # thread_id = '1'
 # print("chat started. Type 'exit' to stop.\nCommands while in a course: next, prev, repeat, goto <n>, stop\n")
