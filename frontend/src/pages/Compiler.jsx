@@ -55,9 +55,75 @@ fibonacci(10)`
   ];
 
   const exampleCodes = {
-    python: `# Python: Find all prime numbers up to n...`,
-    javascript: `// JavaScript: Simple Promise Example...`,
-    java: `// Java: Factorial using recursion...`,
+    python: `# Python: Find all prime numbers up to n
+def is_prime(n):
+    if n < 2:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def find_primes(limit):
+    primes = []
+    for num in range(2, limit + 1):
+        if is_prime(num):
+            primes.append(num)
+    return primes
+
+# Test the function
+limit = 20
+primes = find_primes(limit)
+print(f"Prime numbers up to {limit}: {primes}")`,
+    javascript: `// JavaScript: Simple Promise Example
+function fetchUserData(userId) {
+    return new Promise((resolve, reject) => {
+        // Simulate API call
+        setTimeout(() => {
+            if (userId > 0) {
+                resolve({
+                    id: userId,
+                    name: 'John Doe',
+                    email: 'john@example.com'
+                });
+            } else {
+                reject(new Error('Invalid user ID'));
+            }
+        }, 1000);
+    });
+}
+
+// Usage example
+fetchUserData(1)
+    .then(user => {
+        console.log('User data:', user);
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });`,
+    java: `// Java: Factorial using recursion
+public class Factorial {
+    public static long factorial(int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException("Factorial is not defined for negative numbers");
+        }
+        if (n == 0 || n == 1) {
+            return 1;
+        }
+        return n * factorial(n - 1);
+    }
+    
+    public static void main(String[] args) {
+        int number = 5;
+        long result = factorial(number);
+        System.out.println("Factorial of " + number + " is: " + result);
+        
+        // Test with different numbers
+        for (int i = 0; i <= 10; i++) {
+            System.out.println(i + "! = " + factorial(i));
+        }
+    }
+}`,
   };
 
   // --- Core Functions ---
@@ -71,19 +137,21 @@ fibonacci(10)`
     setError("");
     setExecutionTime(0);
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
-
     try {
-      const mockSuccess = Math.random() > 0.2;
-      const result = mockSuccess ? {
-        success: true,
-        output: `Mock output for ${language}:\n0 1 1 2 3 5 8 13 21 34`,
-        execution_time: Math.random() * 0.5 + 0.1,
-      } : {
-        success: false,
-        error: `Mock ${language} Error:\nSyntaxError: invalid syntax on line 5`,
-        execution_time: Math.random() * 0.1,
-      };
+      const response = await fetch('http://localhost:8000/execute-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          language: language,
+          input_data: inputData || null,
+          timeout: 10
+        })
+      });
+
+      const result = await response.json();
 
       if (result.success) {
         setOutput(result.output);
@@ -100,7 +168,7 @@ fibonacci(10)`
         setExecutionTime(result.execution_time || 0);
       }
     } catch (err) {
-      setError("An unexpected error occurred.");
+      setError(`Connection error: ${err.message}. Make sure the backend server is running on http://localhost:8000`);
     } finally {
       setIsRunning(false);
     }
