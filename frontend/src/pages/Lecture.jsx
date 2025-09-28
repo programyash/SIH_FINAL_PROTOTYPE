@@ -9,7 +9,7 @@ import { coy } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Quiz from "./Quiz";
 import ProgressDashboard from "./ProgressDashboard";
 import "../scss/Lecture.scss";
-import avatar from "../data/avatar2.mp4"
+import avatar from "../data/avatarfinal.mp4"
 // --- Helper Component for Icons ---
 const Icon = ({ path }) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -550,15 +550,13 @@ const Lecture = () => {
                                 <p>Let's get started!</p>
                             </div>
                         )}
-                    </div>
-
-                    {/* --- ✨ NEW AVATAR ELEMENT --- */}
+                        {/* --- ✨ NEW AVATAR ELEMENT --- */}
                     {courseTitle && (
                         <div className="avatar-container">
-                            <img src={avatar} alt="AI Tutor Avatar" className="avatar-image" />
+                            <video src={avatar} className="avatar-image"></video>
                         </div>
                     )}
-
+                    </div>
 
                     {mode === "course" && syllabus.length > 0 && (
                         <div className="syllabus-sidebar">
