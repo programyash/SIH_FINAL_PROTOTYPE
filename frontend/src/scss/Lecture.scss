@@ -1111,6 +1111,15 @@
     }
   }
 
+  // --- Fix: Proper right sidebar column instead of offset positioning ---
+  .right-sidebar {
+    flex: 0 0 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: static; // override earlier offset rules
+  }
+
   // --- ✨ NEW: Avatar Styles ---
   .avatar-container {
     flex: 0 0 180px; // Fixed width for the avatar column
