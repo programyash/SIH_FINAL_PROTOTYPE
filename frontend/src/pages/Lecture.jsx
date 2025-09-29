@@ -501,7 +501,10 @@ const Lecture = () => {
     // 🎯 NEW: Stream lesson content specifically
     const streamLessonContent = async (topic, lessonIndex, lessonTitle) => {
         setIsLoading(true);
-        setLectureContent(""); // Clear previous content
+        // Reset previous content and streaming buffers
+        setLectureContent("");
+        setStreamingContent("");
+        streamContentRef.current = "";
         
         try {
             const controller = new AbortController();
@@ -539,17 +542,22 @@ const Lecture = () => {
                             setCourseTitle(evt.topic);
                             setCurrentLesson(evt.lesson_index);
                         } else if (evt.type === "chunk") {
-                            // Stream lesson content with animation (append-only)
-                            const newContent = (lectureContent || "") + (evt.markdown || "");
-                            setLectureContent(newContent);
-                            streamTextLetterByLetter(newContent);
+                            // Append-only accumulation using refs/state-safe updates
+                            const addition = (evt.markdown || "");
+                            streamContentRef.current += addition;
+                            setLectureContent(prev => (prev || "") + addition);
+                            streamTextLetterByLetter(streamContentRef.current);
                         } else if (evt.type === "done") {
                             // Lesson streaming complete - save to history
                             const lessonTitle = syllabus[currentLesson]?.title || `Lesson ${currentLesson + 1}`;
+                            // Ensure final full text is set
+                            if (streamContentRef.current) {
+                                setLectureContent(streamContentRef.current);
+                            }
                             saveToHistory({
                                 topic: topic || courseTitle,
                                 lessonTitle: lessonTitle,
-                                content: lectureContent,
+                                content: streamContentRef.current || lectureContent,
                                 syllabus: syllabus,
                                 currentLesson: currentLesson
                             });
