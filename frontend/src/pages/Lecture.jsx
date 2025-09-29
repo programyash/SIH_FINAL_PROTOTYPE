@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coy } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Quiz from "./Quiz";
+import avatar from "../data/avatarfinal.mp4";
 import ProgressDashboard from "./ProgressDashboard";
 import "../scss/Lecture.scss";
 // --- Helper Component for Icons ---
@@ -734,35 +735,58 @@ const Lecture = () => {
                         )}
                     </div>
 
-                    {mode === "course" && syllabus.length > 0 && (
-                        <div className="syllabus-sidebar">
-                            <div className="syllabus-header">
-                                <h3>📚 Syllabus</h3>
-                                <span className="course-title">{topic}</span>
+                    <div className="right-sidebar">
+                        {lectureContent && (
+                            <div className="avatar-container">
+                                <video
+                                    src={avatar}
+                                    className="avatar-video"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                />
                             </div>
-                            <div className="syllabus-content">
-                                <ol>
-                                    {syllabus.map((item, idx) => (
-                                        <li
-                                            key={idx}
-                                            className={`syllabus-item ${idx === currentLesson ? 'active' : ''} ${idx !== currentLesson ? 'clickable' : ''} ${isLoading ? 'loading' : ''}`}
-                                            onClick={() => idx !== currentLesson && !isLoading && handleLessonClick(idx)}
-                                        >
-                                            <div className="lesson-number">
-                                                {isLoading && idx !== currentLesson ? <div className="loading-spinner tiny"></div> : idx + 1}
-                                            </div>
-                                            <div className="lesson-content">
-                                                <div className="lesson-title">{item.title}</div>
-                                                <div className="lesson-summary">{item.summary}</div>
-                                            </div>
-                                            {idx !== currentLesson && !isLoading && <div className="click-indicator"><span>▶</span></div>}
-                                            {isLoading && idx !== currentLesson && <div className="loading-indicator"><span>⏳</span></div>}
-                                        </li>
-                                    ))}
-                                </ol>
+                        )}
+
+                        {mode === "course" && syllabus.length > 0 && (
+                            <div className="syllabus-sidebar">
+                                <div className="syllabus-header">
+                                    <h3>📚 Syllabus</h3>
+                                    <span className="course-title">{topic}</span>
+                                </div>
+                                <div className="syllabus-content">
+                                    <ol>
+                                        {syllabus.map((item, idx) => (
+                                            <li
+                                                key={idx}
+                                                className={`syllabus-item ${idx === currentLesson ? "active" : ""
+                                                    } ${idx !== currentLesson ? "clickable" : ""} ${isLoading ? "loading" : ""
+                                                    }`}
+                                                onClick={() =>
+                                                    idx !== currentLesson &&
+                                                    !isLoading &&
+                                                    handleLessonClick(idx)
+                                                }
+                                            >
+                                                <div className="lesson-number">
+                                                    {isLoading && idx !== currentLesson ? (
+                                                        <div className="loading-spinner tiny"></div>
+                                                    ) : (
+                                                        idx + 1
+                                                    )}
+                                                </div>
+                                                <div className="lesson-content-details">
+                                                    <div className="lesson-title">{item.title}</div>
+                                                    <div className="lesson-summary">{item.summary}</div>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </main>
 

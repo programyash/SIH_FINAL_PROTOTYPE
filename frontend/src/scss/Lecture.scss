@@ -58,7 +58,7 @@
 }
 
 .lecture-content {
-  
+
   flex: 1;
   transition: var(--transition-fast);
 
@@ -182,6 +182,38 @@
       margin-bottom: 1rem;
       font-size: 1.5rem;
     }
+  }
+
+  .right-sidebar {
+    // Fixed width for the entire right column
+    position: relative;
+    top: 290px;
+    right: 250px;
+    display: flex;
+    flex-direction: column;
+
+  }
+
+  // --- CORRECTED: Avatar Styles ---
+  .avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #4cafef; // nice accent border
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .avatar-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // ensures video fills container neatly
+    border-radius: 50%;
+    pointer-events: none; // no accidental clicks
   }
 }
 
@@ -738,10 +770,14 @@
 }
 
 @keyframes blink {
-  0%, 50% {
+
+  0%,
+  50% {
     opacity: 1;
   }
-  51%, 100% {
+
+  51%,
+  100% {
     opacity: 0;
   }
 }
@@ -755,7 +791,7 @@
       }
     }
   }
-  
+
   .syllabus-sidebar {
     flex: 0 0 320px;
   }
@@ -765,7 +801,7 @@
   .lecture-area {
     flex-direction: column;
     gap: 16px;
-    
+
     &.full-width,
     &.with-syllabus {
       .live-lecture {
@@ -774,24 +810,24 @@
       }
     }
   }
-  
+
   .syllabus-sidebar {
     flex: none;
     width: 100%;
     max-height: 50vh;
     order: -1; // Show syllabus above content on mobile
   }
-  
+
   .live-lecture {
     padding: 20px;
-    
+
     .placeholder {
       padding: 40px 20px;
-      
+
       h2 {
         font-size: 1.8rem;
       }
-      
+
       p {
         font-size: 1rem;
       }
@@ -1005,7 +1041,13 @@
     }
 
     .lecture-details {
-      h1, h2, h3, h4, h5, h6 {
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
         margin-bottom: 1.5rem;
         font-weight: 600;
         line-height: 1.4;
@@ -1032,10 +1074,11 @@
         font-size: 1.05rem;
       }
 
-      ul, ol {
+      ul,
+      ol {
         margin-bottom: 1.2rem;
         padding-left: 1.5rem;
-        
+
         li {
           margin-bottom: 0.5rem;
           line-height: 1.6;
@@ -1070,19 +1113,21 @@
       }
     }
   }
-    
+
   // --- ✨ NEW: Avatar Styles ---
   .avatar-container {
-      flex: 0 0 180px; // Fixed width for the avatar column
-      display: flex;
-      justify-content: center;
-      padding-top: 30px; // Align it nicely with the content
+    flex: 0 0 180px; // Fixed width for the avatar column
+    display: flex;
+    justify-content: center;
+    padding-top: 30px; // Align it nicely with the content
 
-      .avatar-image {
-          width: 150px;
-          height: 150px;
-          height: auto;
-      }
+    .avatar-image {
+      width: 150px;
+      height: 150px;
+      height: auto;
+      border-radius: 50%;
+
+    }
   }
 }
 
@@ -1131,7 +1176,6 @@
 
 // --- ✨ IMPROVED: Syllabus Sidebar ---
 .syllabus-sidebar {
-  flex: 0 0 380px;
   background: var(--bg-medium);
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 22px var(--shadow-color);
@@ -1218,18 +1262,18 @@
     &.enabled {
       background: var(--accent-green);
       color: white;
-      
+
       &:hover:not(:disabled) {
         background: #059669;
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
       }
     }
-    
+
     &.disabled {
       background: var(--accent-red);
       color: white;
-      
+
       &:hover:not(:disabled) {
         background: #dc2626;
         transform: translateY(-2px);
@@ -1242,29 +1286,29 @@
     &.playing {
       background: var(--accent-yellow);
       color: white;
-      
+
       &:hover:not(:disabled) {
         background: #d97706;
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
       }
     }
-    
+
     &.paused {
       background: var(--primary-blue);
       color: white;
-      
+
       &:hover:not(:disabled) {
         background: var(--primary-blue-dark);
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
       }
     }
-    
+
     &.stopped {
       background: var(--bg-light);
       color: var(--text-primary);
-      
+
       &:hover:not(:disabled) {
         background: var(--primary-blue);
         color: white;
@@ -1274,4 +1318,3 @@
     }
   }
 }
-
