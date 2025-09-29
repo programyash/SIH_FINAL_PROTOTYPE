@@ -200,12 +200,9 @@
     justify-content: center;
     align-items: center;
     margin: 20px auto;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid #4cafef; // nice accent border
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 150px;
+    height: 150px;
+    overflow: hidden; // nice accent border
   }
 
   .avatar-video {
