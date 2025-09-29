@@ -159,8 +159,8 @@
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 22px var(--shadow-color);
     border: 1px solid var(--border-color);
-    max-height: 70vh;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
 
     .placeholder {
       display: flex;
@@ -1008,8 +1008,8 @@
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 22px var(--shadow-color);
     border: 1px solid var(--border-color);
-    max-height: 70vh;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
     transition: all 0.4s ease-in-out;
 
     .placeholder {
