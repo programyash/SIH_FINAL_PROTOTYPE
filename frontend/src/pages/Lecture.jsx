@@ -17,6 +17,63 @@ const Icon = ({ path }) => (
     </svg>
 );
 
+// Simple SVG diagram to visualize an array and indexes
+const ConceptDiagram = ({ title = "Array Concept" }) => (
+    <div className="concept-diagram" aria-label={`${title} diagram`}>
+        <svg width="100%" height="120" viewBox="0 0 820 120" role="img">
+            <rect x="10" y="10" width="800" height="100" rx="8" fill="#0f172a" stroke="#334155" />
+            {Array.from({ length: 8 }).map((_, i) => (
+                <g key={i}>
+                    <rect x={20 + i * 100} y="20" width="90" height="60" fill="#1e293b" stroke="#475569" />
+                    <text x={65 + i * 100} y="55" textAnchor="middle" fontSize="16" fill="#e2e8f0">{i * 2}</text>
+                    <text x={65 + i * 100} y="95" textAnchor="middle" fontSize="12" fill="#94a3b8">{i}</text>
+                </g>
+            ))}
+            <text x="20" y="18" fontSize="12" fill="#94a3b8">index</text>
+        </svg>
+    </div>
+);
+
+const SAMPLE_ENGLISH_MARKDOWN = `
+# Data Structures and Algorithms
+
+## Lesson 1: Arrays — Introduction and Basic Operations
+
+An array is a contiguous block of memory that stores elements of the same type. Each element can be accessed in constant time using its index. Arrays are ideal when:
+
+- You know the number of elements in advance
+- You need fast random access by index
+- Insertions/deletions happen mostly at the end
+
+### Big-O at a Glance
+
+- Access: O(1)
+- Update: O(1)
+- Push/Pop at end: O(1) amortized
+- Insert/Delete at middle: O(n)
+
+### Example (JavaScript)
+
+\`\`\`js
+const nums = [2, 4, 6, 8, 10];
+// read
+console.log(nums[2]); // -> 6
+// update
+nums[1] = 5; // [2, 5, 6, 8, 10]
+// push
+nums.push(12); // [2, 5, 6, 8, 10, 12]
+// insert at index 2
+nums.splice(2, 0, 3); // [2, 5, 3, 6, 8, 10, 12]
+\`\`\`
+
+### When Not to Use Arrays
+
+If you need frequent insertions/deletions at the beginning or middle, consider a linked list or a dynamic structure like a deque.
+
+### Recap
+
+Arrays are simple, cache-friendly, and provide blazing-fast random access, but they are expensive for middle insertions and deletions.`;
+
 const Lecture = () => {
     const [courseTitle, setCourseTitle] = useState("");
     const [searchInput, setSearchInput] = useState("");
@@ -44,6 +101,18 @@ const Lecture = () => {
     const [isTTSPaused, setIsTTSPaused] = useState(false);
     const [ttsUtterance, setTtsUtterance] = useState(null);
 
+    // Load sample content action
+    const loadSampleContent = () => {
+        setLectureContent(SAMPLE_ENGLISH_MARKDOWN);
+        setStreamingContent("");
+        setCourseTitle("Data Structures and Algorithms");
+        setTopic("Data Structures and Algorithms");
+        setMode("single");
+        if (isTTSEnabled) {
+            speakText(SAMPLE_ENGLISH_MARKDOWN);
+        }
+    };
+
     const location = useLocation();
     const historyClickLockRef = useRef(false);
     const historyOpenedAtRef = useRef(0);
@@ -63,6 +132,7 @@ const Lecture = () => {
     const streamMetaRef = useRef(null);
     const streamContentRef = useRef("");
     const streamingTimeoutRef = useRef(null);
+    const streamingContentStateRef = useRef("");
 
     // Load history on component mount
     useEffect(() => {
@@ -88,33 +158,61 @@ const Lecture = () => {
         }, 3000); // Hide after 3 seconds
     };
 
-    // 🎯 NEW: Letter-by-letter streaming animation
-    const streamTextLetterByLetter = (text, onComplete) => {
-        if (!text) return;
-        
+    // Keep a ref in sync with streamingContent for accurate diffs
+    useEffect(() => {
+        streamingContentStateRef.current = streamingContent;
+    }, [streamingContent]);
+
+    // 🎯 Robust letter-by-letter animation that APPENDS only new text
+    const streamTextLetterByLetter = (fullText, onComplete) => {
+        if (!fullText) return;
+
+        // Clear any previous interval to avoid overlap/garble
+        if (streamingTimeoutRef.current) {
+            clearInterval(streamingTimeoutRef.current);
+            streamingTimeoutRef.current = null;
+        }
+
+        const alreadyShown = streamingContentStateRef.current || "";
+        let baseText;
+        let delta;
+        if (fullText.startsWith(alreadyShown)) {
+            baseText = alreadyShown;
+            delta = fullText.slice(alreadyShown.length);
+        } else {
+            // Reset if backend sent a fresh block
+            baseText = "";
+            delta = fullText;
+            setStreamingContent("");
+        }
+
+        if (!delta) {
+            if (onComplete) onComplete();
+            return;
+        }
+
         setIsStreaming(true);
-        setStreamingContent("");
-        
         let currentIndex = 0;
         const streamInterval = setInterval(() => {
-            if (currentIndex < text.length) {
-                setStreamingContent(prev => prev + text[currentIndex]);
+            if (currentIndex < delta.length) {
+                const nextChar = delta[currentIndex];
+                setStreamingContent(prev => (prev || baseText) + nextChar);
                 currentIndex++;
             } else {
                 clearInterval(streamInterval);
+                streamingTimeoutRef.current = null;
                 setIsStreaming(false);
                 if (onComplete) onComplete();
-                
-                // Auto-start TTS when streaming is complete
-                if (isTTSEnabled && text.trim()) {
+
+                // Auto-start TTS on completion
+                if (isTTSEnabled && fullText.trim()) {
                     setTimeout(() => {
-                        speakText(text);
-                    }, 500); // Small delay to ensure content is fully rendered
+                        speakText(fullText);
+                    }, 300);
                 }
             }
-        }, 20); // Adjust speed here (lower = faster)
-        
-        // Store interval reference for cleanup
+        }, 20);
+
         streamingTimeoutRef.current = streamInterval;
     };
 
@@ -441,7 +539,7 @@ const Lecture = () => {
                             setCourseTitle(evt.topic);
                             setCurrentLesson(evt.lesson_index);
                         } else if (evt.type === "chunk") {
-                            // Stream lesson content with animation
+                            // Stream lesson content with animation (append-only)
                             const newContent = (lectureContent || "") + (evt.markdown || "");
                             setLectureContent(newContent);
                             streamTextLetterByLetter(newContent);
@@ -658,6 +756,7 @@ const Lecture = () => {
                             <>
                                 {(lectureContent || streamingContent) ? (
                                     <div className="lecture-details">
+                                        <ConceptDiagram title={topic || courseTitle} />
                                         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
                                             code({ inline, className, children, ...props }) {
                                                 const match = /language-(\w+)/.exec(className || "");
@@ -707,6 +806,12 @@ const Lecture = () => {
                                                     </span>
                                                 </button>
                                             )}
+
+                                            {/* Load a clean, formatted English sample */}
+                                            <button className="nav-btn" onClick={loadSampleContent} title="Load sample English content">
+                                                <span className="btn-icon">📝</span>
+                                                <span className="btn-text">Use Sample</span>
+                                            </button>
                                             
                                             <button className="nav-btn download-btn" onClick={handleDownloadNotes} disabled={isDownloading || !lectureContent}>
                                                 {isDownloading ? <div className="loading-spinner small"></div> : <span className="btn-icon">📥</span>}
