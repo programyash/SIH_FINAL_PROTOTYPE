@@ -16,7 +16,7 @@ const ProgressDashboard = ({ userId = "default_user", onClose }) => {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/performance-dashboard", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/performance-dashboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

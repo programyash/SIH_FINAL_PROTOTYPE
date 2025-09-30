@@ -429,7 +429,7 @@ const Lecture = () => {
             // 🎯 FIXED: Generate unique thread_id for each new course search
             const uniqueThreadId = `course_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             setCurrentThreadId(uniqueThreadId);
-            const response = await fetch("http://localhost:8000/course-stream", {
+            const response = await fetch("https://sih-backend-4fcb.onrender.com/course-stream", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query, thread_id: uniqueThreadId }),
@@ -510,7 +510,7 @@ const Lecture = () => {
             const controller = new AbortController();
             streamAbortRef.current = controller;
 
-            const response = await fetch("http://localhost:8000/lesson-stream", {
+            const response = await fetch("https://sih-backend-4fcb.onrender.com/lesson-stream", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -644,7 +644,7 @@ const Lecture = () => {
         }
         setIsDownloading(true);
         try {
-            const response = await fetch("http://localhost:8000/download-notes", {
+            const response = await fetch("https://sih-backend-4fcb.onrender.com/download-notes", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -687,7 +687,7 @@ const Lecture = () => {
         setIsDoubtLoading(true);
         const currentDoubt = doubt.trim();
         try {
-            const response = await fetch("http://localhost:8000/doubt", {
+            const response = await fetch("https://sih-backend-4fcb.onrender.com/doubt", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

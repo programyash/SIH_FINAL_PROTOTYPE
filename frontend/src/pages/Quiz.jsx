@@ -56,7 +56,7 @@ const Quiz = ({
   const generateQuiz = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/generate-quiz", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
