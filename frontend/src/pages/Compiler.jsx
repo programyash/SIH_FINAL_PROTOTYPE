@@ -138,7 +138,7 @@ public class Factorial {
     setExecutionTime(0);
 
     try {
-      const response = await fetch('https://sih-backend-4fcb.onrender.com/execute-code', {
+      const response = await fetch('http://localhost:8000/execute-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ public class Factorial {
         setExecutionTime(result.execution_time || 0);
       }
     } catch (err) {
-      setError(`Connection error: ${err.message}. Make sure the backend server is running on https://sih-backend-4fcb.onrender.com`);
+      setError(`Connection error: ${err.message}. Make sure the backend server is running on http://localhost:8000`);
     } finally {
       setIsRunning(false);
     }
