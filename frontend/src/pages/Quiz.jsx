@@ -56,7 +56,7 @@ const Quiz = ({
   const generateQuiz = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/generate-quiz", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +110,7 @@ const Quiz = ({
   const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("http://localhost:8000/submit-quiz", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/submit-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -168,7 +168,7 @@ const Quiz = ({
     setCodeOutput("");
     
     try {
-      const response = await fetch("http://localhost:8000/execute-code", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/execute-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

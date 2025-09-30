@@ -28,7 +28,7 @@ const Home = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/roadmap", {
+      const response = await fetch("https://sih-backend-4fcb.onrender.com/roadmap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill }),
