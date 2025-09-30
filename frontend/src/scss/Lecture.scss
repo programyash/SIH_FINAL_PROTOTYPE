@@ -154,14 +154,13 @@
   .live-lecture {
     margin-top: 0;
     flex: 1;
-    min-height: 500px;
+    height: 600px;
     background: var(--bg-medium);
     padding: 24px;
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 22px var(--shadow-color);
     border: 1px solid var(--border-color);
-    max-height: none;
-    overflow-y: visible;
+    overflow-y: scroll;
 
     .placeholder {
       display: flex;
