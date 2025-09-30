@@ -140,16 +140,14 @@ public class Factorial {
     try {
       const response = await fetch('https://sih-backend-4fcb.onrender.com/execute-code', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: code,
           language: language,
           input_data: inputData || null,
           timeout: 10
         })
-      });
+      });;
 
       const result = await response.json();
 
