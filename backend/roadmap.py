@@ -8,22 +8,30 @@ import re
 from typing import TypedDict
 from langgraph.checkpoint.mongodb import MongoDBSaver
 from pymongo import MongoClient
+import google.generativeai as genai
 
 load_dotenv()
 
 client = MongoClient(os.getenv("MONGO_CLIENT"))
 
-saver = MongoDBSaver(
-    client=client,
+saver = MongoDBSaver.from_conn_string(
+    os.getenv("MONGO_CLIENT"),
     db_name="chatbot_langgraph",
     collection_name="chatbot_sessions"
 )
 
-llm = HuggingFaceEndpoint(
-    repo_id="Qwen/Qwen3-Coder-480B-A35B-Instruct",
-    task="text-generation"
-)
-model = ChatHuggingFace(llm=llm)
+genai.configure(api_key=os.getenv("GENAI_API_KEY"))
+model = genai.GenerativeModel('gemini-2.0-flash')
+
+def ask_gemini(prompt: str):
+    response = model.generate_content(prompt)
+    return response.text.strip()
+
+# llm = HuggingFaceEndpoint(
+#     repo_id="Qwen/Qwen3-Coder-480B-A35B-Instruct",
+#     task="text-generation"
+# )
+# model = ChatHuggingFace(llm=llm)
 
 class agentstate(TypedDict):
     skill: str
@@ -74,9 +82,9 @@ def safe_json_parse(text: str):
 
 def generate_roadmap(state: agentstate) -> agentstate:
     prompt_text = prompt.format(skill=state['skill'])
-    response = model.invoke(prompt_text)
+    response = model.generate_content(prompt_text)
     try:
-        roadmap_json = safe_json_parse(response.content.strip())
+        roadmap_json = safe_json_parse(response.text.strip())
     except:
         roadmap_json = {"error": "Failed to parse roadmap."}
     state['roadmap'] = roadmap_json

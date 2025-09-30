@@ -61,8 +61,8 @@ def gemini_invoke_list(prompt: str):
         print("Gemini API error: ", e)
         return [f"Error: {e}"]
 
-saver = MongoDBSaver(
-    client=client,
+saver = MongoDBSaver.from_conn_string(
+    os.getenv("MONGO_CLIENT"),
     db_name="chatbot_langgraph",
     collection_name="chatbot_sessions"
 )
