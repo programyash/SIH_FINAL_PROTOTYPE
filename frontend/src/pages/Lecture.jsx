@@ -100,6 +100,8 @@ const Lecture = () => {
     const [isTTSPlaying, setIsTTSPlaying] = useState(false);
     const [isTTSPaused, setIsTTSPaused] = useState(false);
     const [ttsUtterance, setTtsUtterance] = useState(null);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1.0); // 0.5x - 2.0x
+    const liveLectureRef = useRef(null);
 
     // Load sample content action
     const loadSampleContent = () => {
@@ -193,6 +195,7 @@ const Lecture = () => {
 
         setIsStreaming(true);
         let currentIndex = 0;
+        const stepDelayMs = Math.max(5, 20 / Math.max(0.25, Math.min(3, playbackSpeed)));
         const streamInterval = setInterval(() => {
             if (currentIndex < delta.length) {
                 const nextChar = delta[currentIndex];
@@ -211,7 +214,7 @@ const Lecture = () => {
                     }, 300);
                 }
             }
-        }, 20);
+        }, stepDelayMs);
 
         streamingTimeoutRef.current = streamInterval;
     };
@@ -239,7 +242,7 @@ const Lecture = () => {
         const utterance = new SpeechSynthesisUtterance(cleanText);
         
         // Configure speech settings
-        utterance.rate = 0.9;
+        utterance.rate = Math.max(0.5, Math.min(2.0, playbackSpeed));
         utterance.pitch = 1;
         utterance.volume = 0.8;
         utterance.lang = 'en-US';
@@ -310,6 +313,16 @@ const Lecture = () => {
             showToast("Text-to-Speech enabled", "success");
         }
     };
+
+    // Smooth auto-scroll for live lecture while streaming
+    useEffect(() => {
+        if (!liveLectureRef.current) return;
+        if (isStreaming) {
+            // Smoothly follow new content
+            const el = liveLectureRef.current;
+            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+        }
+    }, [streamingContent, isStreaming]);
 
     // 📚 Learning History Management
     const saveToHistory = (lessonData) => {
@@ -523,7 +536,7 @@ const Lecture = () => {
             });
 
             if (!response.ok || !response.body) throw new Error("Failed to start lesson stream");
-
+            
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let ndjsonBuffer = "";
@@ -759,8 +772,8 @@ const Lecture = () => {
                     <h3>{courseTitle || "Search a Course to Begin Your Journey"}</h3>
                 </div>
 
-                <div className={`lecture-area ${mode === "course" && syllabus.length > 0 ? 'with-syllabus' : 'full-width'}`}>
-                    <div className="live-lecture">
+                <div className={`lecture-area ${'with-syllabus'}`}>
+                    <div className="live-lecture" ref={liveLectureRef}>
                         {courseTitle ? (
                             <>
                                 {(lectureContent || streamingContent) ? (
@@ -803,18 +816,41 @@ const Lecture = () => {
                                             
                                             {isTTSEnabled && (lectureContent || streamingContent) && (
                                                 <button 
-                                                    className={`nav-btn tts-play-btn ${isTTSPlaying ? (isTTSPaused ? 'paused' : 'playing') : 'stopped'}`} 
+                                                    className={`nav-btn tts-play-btn icon-only ${isTTSPlaying ? (isTTSPaused ? 'paused' : 'playing') : 'stopped'}`} 
                                                     onClick={toggleTTS}
-                                                    title={isTTSPlaying ? (isTTSPaused ? "Resume Speech" : "Pause Speech") : "Start Speech"}
+                                                    title={isTTSPlaying ? (isTTSPaused ? "Resume" : "Pause") : "Speak"}
                                                 >
                                                     <span className="btn-icon">
                                                         {isTTSPlaying ? (isTTSPaused ? "▶️" : "⏸️") : "🎤"}
                                                     </span>
-                                                    <span className="btn-text">
-                                                        {isTTSPlaying ? (isTTSPaused ? "Resume" : "Pause") : "Speak"}
-                                                    </span>
                                                 </button>
                                             )}
+
+                                            {/* Playback Speed Control */}
+                                            <div className="speed-control" title="Playback speed">
+                                                <span className="speed-label">⏱️</span>
+                                                <input
+                                                    type="range"
+                                                    min="0.5"
+                                                    max="2"
+                                                    step="0.1"
+                                                    value={playbackSpeed}
+                                                    onChange={(e) => {
+                                                        const val = parseFloat(e.target.value);
+                                                        setPlaybackSpeed(val);
+                                                        // Update live TTS rate if speaking
+                                                        if (ttsUtterance && speechSynthesis.speaking) {
+                                                            try {
+                                                                speechSynthesis.cancel();
+                                                                // Restart at new speed using latest text
+                                                                const text = (streamingContent || lectureContent || '').toString();
+                                                                if (text) speakText(text);
+                                                            } catch {}
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="speed-value">{playbackSpeed.toFixed(1)}x</span>
+                                            </div>
 
                                             {/* Load a clean, formatted English sample */}
                                             <button className="nav-btn" onClick={loadSampleContent} title="Load sample English content">
@@ -863,25 +899,21 @@ const Lecture = () => {
                             </div>
                         )}
 
-                        {mode === "course" && syllabus.length > 0 && (
-                            <div className="syllabus-sidebar">
-                                <div className="syllabus-header">
-                                    <h3>📚 Syllabus</h3>
-                                    <span className="course-title">{topic}</span>
-                                </div>
-                                <div className="syllabus-content">
+                        <div className="syllabus-sidebar">
+                            <div className="syllabus-header">
+                                <h3>📚 Syllabus</h3>
+                                <span className="course-title">{topic || 'Your Course'}</span>
+                            </div>
+                            <div className="syllabus-content">
+                                {syllabus.length === 0 ? (
+                                    <div className="syllabus-empty">Start a course to see the lessons here.</div>
+                                ) : (
                                     <ol>
                                         {syllabus.map((item, idx) => (
                                             <li
                                                 key={idx}
-                                                className={`syllabus-item ${idx === currentLesson ? "active" : ""
-                                                    } ${idx !== currentLesson ? "clickable" : ""} ${isLoading ? "loading" : ""
-                                                    }`}
-                                                onClick={() =>
-                                                    idx !== currentLesson &&
-                                                    !isLoading &&
-                                                    handleLessonClick(idx)
-                                                }
+                                                className={`syllabus-item ${idx === currentLesson ? "active" : ""} ${idx !== currentLesson ? "clickable" : ""} ${isLoading ? "loading" : ""}`}
+                                                onClick={() => idx !== currentLesson && !isLoading && handleLessonClick(idx)}
                                             >
                                                 <div className="lesson-number">
                                                     {isLoading && idx !== currentLesson ? (
@@ -897,9 +929,9 @@ const Lecture = () => {
                                             </li>
                                         ))}
                                     </ol>
-                                </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             </main>

@@ -1006,14 +1006,15 @@
   }
 
   .live-lecture {
-    min-height: 500px;
+    min-height: 680px;
     background: var(--bg-medium);
-    padding: 32px;
+    padding: 36px;
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 22px var(--shadow-color);
     border: 1px solid var(--border-color);
     max-height: none;
-    overflow-y: visible;
+    overflow-y: auto;
+    scroll-behavior: smooth;
     transition: all 0.4s ease-in-out;
 
     .placeholder {
@@ -1179,6 +1180,45 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    &.icon-only {
+      .btn-text { display: none; }
+      width: 44px;
+      justify-content: center;
+    }
+  }
+
+  .speed-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding: 8px 10px;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+
+    .speed-label { color: var(--text-secondary); }
+    .speed-value { width: 48px; text-align: right; color: var(--text-secondary); font-weight: 600; }
+    input[type="range"] {
+      appearance: none;
+      width: 140px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--border-color);
+      outline: none;
+
+      &::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px var(--primary-blue);
+        cursor: pointer;
+      }
+    }
   }
 }
 
@@ -1265,7 +1305,27 @@
         transition: var(--transition-fast);
       }
     }
+
+    .syllabus-empty {
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 20px 10px;
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-md);
+    }
   }
+}
+
+// --- Overrides to neutralize any earlier offsets ---
+.lecture-area {
+  left: 0 !important;
+  margin-top: 0;
+}
+
+.right-sidebar {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
 }
 
 // --- 🎤 TTS Control Styles ---
