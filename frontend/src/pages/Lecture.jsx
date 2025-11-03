@@ -103,6 +103,8 @@ const Lecture = () => {
     const [playbackSpeed, setPlaybackSpeed] = useState(0.6); // 0.25x - 2.0x
     const liveLectureRef = useRef(null);
     const ttsStartedForStreamRef = useRef(false);
+    const userNearBottomRef = useRef(true);
+    const [isLiveMaximized, setIsLiveMaximized] = useState(false);
 
     // Load sample content action
     const loadSampleContent = () => {
@@ -317,15 +319,22 @@ const Lecture = () => {
         }
     };
 
-    // Smooth auto-scroll for live lecture while streaming
+    // Smooth auto-scroll for live lecture while streaming, but only if user is near bottom
     useEffect(() => {
         if (!liveLectureRef.current) return;
-        if (isStreaming) {
+        if (isStreaming && userNearBottomRef.current) {
             // Smoothly follow new content
             const el = liveLectureRef.current;
             el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
         }
     }, [streamingContent, isStreaming]);
+
+    const handleLiveScroll = () => {
+        const el = liveLectureRef.current;
+        if (!el) return;
+        const threshold = 80; // px from bottom considered "near"
+        userNearBottomRef.current = (el.scrollTop + el.clientHeight) >= (el.scrollHeight - threshold);
+    };
 
     // 📚 Learning History Management
     const saveToHistory = (lessonData) => {
@@ -783,8 +792,8 @@ const Lecture = () => {
                     <h3>{courseTitle || "Search a Course to Begin Your Journey"}</h3>
                 </div>
 
-                <div className={`lecture-area ${'with-syllabus'}`}>
-                    <div className="live-lecture" ref={liveLectureRef}>
+                <div className={`lecture-area ${'with-syllabus'} ${isLiveMaximized ? 'live-maximized' : ''}`}>
+                    <div className={`live-lecture ${isLiveMaximized ? 'maximized' : ''}`} ref={liveLectureRef} onScroll={handleLiveScroll}>
                         {courseTitle ? (
                             <>
                                 {(lectureContent || streamingContent) ? (
@@ -805,24 +814,21 @@ const Lecture = () => {
                                             {streamingContent || lectureContent}
                                         </ReactMarkdown>
                                         {isStreaming && <div className="streaming-cursor">|</div>}
-                                        <div className="lecture-controls">
-                                            <button className="nav-btn prev-btn" onClick={handlePrevious} disabled={isLoading || mode !== "course" || currentLesson === 0}>
+                                        <div className="lecture-controls sticky">
+                                            <button className="nav-btn prev-btn icon-only" onClick={handlePrevious} disabled={isLoading || mode !== "course" || currentLesson === 0} title="Previous">
                                                 {isLoading ? <div className="loading-spinner small"></div> : <span className="btn-icon">⬅️</span>}
-                                                <span className="btn-text">Previous</span>
                                             </button>
-                                            <button className="nav-btn repeat-btn" onClick={handleRepeat} disabled={isLoading || mode !== "course" || syllabus.length === 0}>
+                                            <button className="nav-btn repeat-btn icon-only" onClick={handleRepeat} disabled={isLoading || mode !== "course" || syllabus.length === 0} title="Repeat">
                                                 {isLoading ? <div className="loading-spinner small"></div> : <span className="btn-icon">🔁</span>}
-                                                <span className="btn-text">Repeat</span>
                                             </button>
                                             
                                             {/* 🎤 TTS Controls */}
                                             <button 
-                                                className={`nav-btn tts-toggle-btn ${isTTSEnabled ? 'enabled' : 'disabled'}`} 
+                                                className={`nav-btn tts-toggle-btn icon-only ${isTTSEnabled ? 'enabled' : 'disabled'}`} 
                                                 onClick={toggleTTSEngine}
                                                 title={isTTSEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}
                                             >
                                                 <span className="btn-icon">{isTTSEnabled ? "🔊" : "🔇"}</span>
-                                                <span className="btn-text">{isTTSEnabled ? "TTS On" : "TTS Off"}</span>
                                             </button>
                                             
                                             {isTTSEnabled && (lectureContent || streamingContent) && (
@@ -864,22 +870,23 @@ const Lecture = () => {
                                             </div>
 
                                             {/* Load a clean, formatted English sample */}
-                                            <button className="nav-btn" onClick={loadSampleContent} title="Load sample English content">
+                                            <button className="nav-btn icon-only" onClick={loadSampleContent} title="Use Sample Content">
                                                 <span className="btn-icon">📝</span>
-                                                <span className="btn-text">Use Sample</span>
                                             </button>
                                             
-                                            <button className="nav-btn download-btn" onClick={handleDownloadNotes} disabled={isDownloading || !lectureContent}>
+                                            <button className="nav-btn download-btn icon-only" onClick={handleDownloadNotes} disabled={isDownloading || !lectureContent} title="Download Notes">
                                                 {isDownloading ? <div className="loading-spinner small"></div> : <span className="btn-icon">📥</span>}
-                                                <span className="btn-text">Download Notes</span>
                                             </button>
-                                            <button className="nav-btn quiz-btn" onClick={handleStartQuiz} disabled={!lectureContent}>
+                                            <button className="nav-btn quiz-btn icon-only" onClick={handleStartQuiz} disabled={!lectureContent} title="Take Quiz">
                                                 <span className="btn-icon">🎯</span>
-                                                <span className="btn-text">Take Quiz</span>
                                             </button>
-                                            <button className="nav-btn next-btn" onClick={handleNext} disabled={isLoading || mode !== "course" || currentLesson >= syllabus.length - 1}>
-                                                <span className="btn-text">Next</span>
+                                            <button className="nav-btn next-btn icon-only" onClick={handleNext} disabled={isLoading || mode !== "course" || currentLesson >= syllabus.length - 1} title="Next">
                                                 {isLoading ? <div className="loading-spinner small"></div> : <span className="btn-icon">➡️</span>}
+                                            </button>
+
+                                            {/* Maximize / Minimize live lecture */}
+                                            <button className="nav-btn icon-only maximize-btn" onClick={() => setIsLiveMaximized(v => !v)} title={isLiveMaximized ? "Minimize" : "Maximize"}>
+                                                <span className="btn-icon">{isLiveMaximized ? "🗗" : "⛶"}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -956,6 +963,20 @@ const Lecture = () => {
                                     </ol>
                                 )}
                             </div>
+                            {lectureContent && (
+                                <div className="syllabus-footer">
+                                    <div className="avatar-mini">
+                                        <video
+                                            src={avatar}
+                                            className="avatar-video"
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
