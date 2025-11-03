@@ -100,8 +100,9 @@ const Lecture = () => {
     const [isTTSPlaying, setIsTTSPlaying] = useState(false);
     const [isTTSPaused, setIsTTSPaused] = useState(false);
     const [ttsUtterance, setTtsUtterance] = useState(null);
-    const [playbackSpeed, setPlaybackSpeed] = useState(1.0); // 0.5x - 2.0x
+    const [playbackSpeed, setPlaybackSpeed] = useState(0.6); // 0.25x - 2.0x
     const liveLectureRef = useRef(null);
+    const ttsStartedForStreamRef = useRef(false);
 
     // Load sample content action
     const loadSampleContent = () => {
@@ -135,6 +136,7 @@ const Lecture = () => {
     const streamContentRef = useRef("");
     const streamingTimeoutRef = useRef(null);
     const streamingContentStateRef = useRef("");
+    const lessonStreamStartedRef = useRef(false);
 
     // Load history on component mount
     useEffect(() => {
@@ -195,7 +197,7 @@ const Lecture = () => {
 
         setIsStreaming(true);
         let currentIndex = 0;
-        const stepDelayMs = Math.max(5, 20 / Math.max(0.25, Math.min(3, playbackSpeed)));
+        const stepDelayMs = Math.max(10, 50 / Math.max(0.25, Math.min(3, playbackSpeed)));
         const streamInterval = setInterval(() => {
             if (currentIndex < delta.length) {
                 const nextChar = delta[currentIndex];
@@ -207,11 +209,12 @@ const Lecture = () => {
                 setIsStreaming(false);
                 if (onComplete) onComplete();
 
-                // Auto-start TTS on completion
-                if (isTTSEnabled && fullText.trim()) {
+                // Auto-start TTS if not already started for this stream
+                if (isTTSEnabled && fullText.trim() && !ttsStartedForStreamRef.current) {
+                    ttsStartedForStreamRef.current = true;
                     setTimeout(() => {
                         speakText(fullText);
-                    }, 300);
+                    }, 200);
                 }
             }
         }, stepDelayMs);
@@ -438,6 +441,8 @@ const Lecture = () => {
             streamAbortRef.current = controller;
             streamMetaRef.current = null;
             streamContentRef.current = "";
+            lessonStreamStartedRef.current = false;
+            ttsStartedForStreamRef.current = false;
 
             // 🎯 FIXED: Generate unique thread_id for each new course search
             const uniqueThreadId = `course_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -471,19 +476,24 @@ const Lecture = () => {
                             setSyllabus(Array.isArray(evt.syllabus) ? evt.syllabus : []);
                             setCurrentLesson(typeof evt.current_lesson === "number" ? evt.current_lesson : 0);
                             setLectureContent("");
-                        } else if (evt.type === "chunk") {
-                            streamContentRef.current += (evt.markdown || "") + "\n\n";
-                            // Start streaming animation for new content
-                            const newContent = streamContentRef.current;
-                            streamTextLetterByLetter(newContent);
-                        } else if (evt.type === "done") {
-                            // Course setup complete - now stream the first lesson
-                            const meta = streamMetaRef.current;
-                            if (meta && meta.mode === "course" && Array.isArray(meta.syllabus) && meta.syllabus.length > 0) {
-                                // 🎯 FIXED: Stream the first lesson content after course setup
-                                const firstLessonTitle = meta.syllabus[0]?.title || `Lesson 1`;
-                                streamLessonContent(meta.topic || query, 0, firstLessonTitle);
+                            // Start first lesson stream ASAP without waiting for 'done'
+                            if (!lessonStreamStartedRef.current && (evt.mode === "course") && Array.isArray(evt.syllabus) && evt.syllabus.length > 0) {
+                                lessonStreamStartedRef.current = true;
+                                const firstLessonTitle = evt.syllabus[0]?.title || `Lesson 1`;
+                                // Abort the course-stream to free up connection; lesson stream contains the actual content
+                                try { controller.abort(); } catch (e) {}
+                                streamLessonContent(theTopic, 0, firstLessonTitle);
+                                return; // stop processing further course-stream lines
                             }
+                        } else if (evt.type === "chunk") {
+                            // Ignore course-level chunks if lesson stream is/will be started
+                            if (!lessonStreamStartedRef.current) {
+                                streamContentRef.current += (evt.markdown || "") + "\n\n";
+                                const newContent = streamContentRef.current;
+                                streamTextLetterByLetter(newContent);
+                            }
+                        } else if (evt.type === "done") {
+                            // No-op: we already started the lesson stream on meta
                         } else if (evt.type === "error") {
                             showToast("Error: " + (evt.error || "Unknown error"), "error");
                         }
@@ -523,6 +533,7 @@ const Lecture = () => {
         try {
             const controller = new AbortController();
             streamAbortRef.current = controller;
+            ttsStartedForStreamRef.current = false;
 
             const response = await fetch("https://sih-backend-4fcb.onrender.com/lesson-stream", {
                 method: "POST",
@@ -831,9 +842,9 @@ const Lecture = () => {
                                                 <span className="speed-label">⏱️</span>
                                                 <input
                                                     type="range"
-                                                    min="0.5"
+                                                    min="0.25"
                                                     max="2"
-                                                    step="0.1"
+                                                    step="0.05"
                                                     value={playbackSpeed}
                                                     onChange={(e) => {
                                                         const val = parseFloat(e.target.value);
@@ -849,7 +860,7 @@ const Lecture = () => {
                                                         }
                                                     }}
                                                 />
-                                                <span className="speed-value">{playbackSpeed.toFixed(1)}x</span>
+                                                <span className="speed-value">{playbackSpeed.toFixed(2)}x</span>
                                             </div>
 
                                             {/* Load a clean, formatted English sample */}
@@ -906,7 +917,21 @@ const Lecture = () => {
                             </div>
                             <div className="syllabus-content">
                                 {syllabus.length === 0 ? (
-                                    <div className="syllabus-empty">Start a course to see the lessons here.</div>
+                                    isLoading ? (
+                                        <div className="syllabus-skeleton">
+                                            {[...Array(5)].map((_, i) => (
+                                                <div key={i} className="skeleton-item">
+                                                    <div className="skeleton-number" />
+                                                    <div className="skeleton-lines">
+                                                        <div className="skeleton-line short" />
+                                                        <div className="skeleton-line" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="syllabus-empty">Start a course to see the lessons here.</div>
+                                    )
                                 ) : (
                                     <ol>
                                         {syllabus.map((item, idx) => (

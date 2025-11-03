@@ -1202,7 +1202,7 @@
     .speed-value { width: 48px; text-align: right; color: var(--text-secondary); font-weight: 600; }
     input[type="range"] {
       appearance: none;
-      width: 140px;
+      width: 160px;
       height: 4px;
       border-radius: 4px;
       background: var(--border-color);
@@ -1313,7 +1313,55 @@
       border: 1px dashed var(--border-color);
       border-radius: var(--radius-md);
     }
+
+    // Skeleton while loading syllabus
+    .syllabus-skeleton {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .skeleton-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+      }
+
+      .skeleton-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+      }
+
+      .skeleton-lines {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .skeleton-line {
+        height: 10px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+
+        &.short { width: 60%; }
+      }
+    }
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 // --- Overrides to neutralize any earlier offsets ---
