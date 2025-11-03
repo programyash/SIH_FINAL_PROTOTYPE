@@ -480,6 +480,7 @@ const Lecture = () => {
 
             // read loop
             while (true) {
+                
                 const { value, done } = await reader.read();
                 if (done) break;
                 processText(decoder.decode(value, { stream: true }));
