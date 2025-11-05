@@ -497,9 +497,9 @@ const Lecture = () => {
                         } else if (evt.type === "chunk") {
                             // Ignore course-level chunks if lesson stream is/will be started
                             if (!lessonStreamStartedRef.current) {
-                                streamContentRef.current += (evt.markdown || "") + "\n\n";
-                                const newContent = streamContentRef.current;
-                                streamTextLetterByLetter(newContent);
+                            streamContentRef.current += (evt.markdown || "") + "\n\n";
+                            const newContent = streamContentRef.current;
+                            streamTextLetterByLetter(newContent);
                             }
                         } else if (evt.type === "done") {
                             // No-op: we already started the lesson stream on meta
@@ -917,12 +917,12 @@ const Lecture = () => {
                             </div>
                         )}
 
-                        <div className="syllabus-sidebar">
-                            <div className="syllabus-header">
-                                <h3>📚 Syllabus</h3>
+                            <div className="syllabus-sidebar">
+                                <div className="syllabus-header">
+                                    <h3>📚 Syllabus</h3>
                                 <span className="course-title">{topic || 'Your Course'}</span>
-                            </div>
-                            <div className="syllabus-content">
+                                </div>
+                                <div className="syllabus-content">
                                 {syllabus.length === 0 ? (
                                     isLoading ? (
                                         <div className="syllabus-skeleton">
@@ -974,9 +974,9 @@ const Lecture = () => {
                                             muted
                                             playsInline
                                         />
-                                    </div>
                                 </div>
-                            )}
+                            </div>
+                        )}
                         </div>
                     </div>
                 </div>
